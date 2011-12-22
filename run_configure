@@ -1,0 +1,7 @@
+#!/bin/bash
+
+make distclean
+autoreconf ; autoreconf
+CFLAGS=-I$ACTPOL_LOCAL/include LDFLAGS=-L$ACTPOL_LOCAL/lib ./configure --prefix=$ACTPOL_LOCAL
+make check
+

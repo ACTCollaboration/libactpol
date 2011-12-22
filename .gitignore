@@ -1,0 +1,26 @@
+*.[oa]
+*~
+/src/test
+
+# configure
+Makefile
+/config.h
+/config.log
+/config.status
+/stamp-h1
+/src/.deps/
+
+# automake
+Makefile.in
+
+# autoconf
+/autom4te.cache
+/aclocal.m4
+/compile
+/configure
+/depcomp
+/install-sh
+/missing
+
+# autoheader
+/config.h.in
