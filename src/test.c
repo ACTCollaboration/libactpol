@@ -69,17 +69,6 @@ test_map(void)
     ACTpolMap_free(map);
 }
 
-void
-ACTSite( ACTpolSite *p )
-{
-    p->latitude = ACTPOL_LATITUDE;
-    p->east_longitude = ACTPOL_LONGITUDE_EAST;
-    p->elevation_m = ACTPOL_ELEVATION_METERS; 
-    p->temperature_K = 273.;
-    p->pressure_mb = 550.;
-    p->relative_humidity = 0.2;
-}
-
 double vector_norm(double v[3]) { return sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]); }
 
 void
@@ -108,24 +97,6 @@ matrix_x_vector(double a[3], double m[3][3], double v[3])
     a[0] = m[0][0]*v[0] + m[0][1]*v[1] + m[0][2]*v[2];
     a[1] = m[1][0]*v[0] + m[1][1]*v[1] + m[1][2]*v[2];
     a[2] = m[2][0]*v[0] + m[2][1]*v[1] + m[2][2]*v[2];
-}
-
-double
-refraction(ACTpolSite *site, double alt)
-{
-    double ref;
-    slaRefro(M_PI_2 - alt,
-        site->elevation_m,
-        site->temperature_K,
-        site->pressure_mb,
-        site->relative_humidity,
-        299792.458/150., // wavelength
-        ACTPOL_LATITUDE,
-        0.0065,     // tropospheric lapse rate [K/m]
-        1e-8,
-        &ref);
-    printf("refraction = %g deg\n", rad2deg(ref));
-    return ref;
 }
 
 void
@@ -189,13 +160,13 @@ test_astro(void)
     Quaternion q, q1, q2, q3, q4;
     double alt=deg2rad(45.), az=deg2rad(123.), r[3], rp[3];
     double unixtime = 1327019150.9773691;
-    double mat[3][3], ra, dec;
-    ACTpolSite site;
-    ACTSite( &site );
+    double mat[3][3], ra, dec, freq_GHz=150.;
+    ACTpolWeather weather;
+    ACTpolWeather_default(&weather);
 
     check_horizon_to_itrs(alt, az);
 
-    double ref = refraction(&site, alt);
+    double ref = actpol_refraction(&weather, freq_GHz, alt);
     //altaz2itrs(alt-ref, az, r);
     actpol_ang2vec(-az, alt-ref, r);
     Quaternion_identity(q);
@@ -207,7 +178,7 @@ test_astro(void)
     actpol_vec2ang(rp, &ra, &dec);
     printf("noltaq ra, dec = %g, %g\n", rad2deg(ra), rad2deg(dec));
 
-    observed_altaz_to_mean_radec( &site, 150., 1, &unixtime, &alt, &az, &ra, &dec );
+    observed_altaz_to_mean_radec( &weather, freq_GHz, 1, &unixtime, &alt, &az, &ra, &dec );
     printf("slalib ra, dec = %g, %g\n", rad2deg(ra), rad2deg(dec));
 }
 

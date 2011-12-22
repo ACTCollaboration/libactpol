@@ -24,17 +24,21 @@ static inline double arcsec2rad( double sec ) { return deg2rad(sec/3600.); }
 
 typedef struct
 {
-    double latitude;            /* radians */
-    double east_longitude;      /* radians */
-    double elevation_m;
     double temperature_K;
-    double pressure_mb;
+    double pressure_mbar;
     double relative_humidity;   /* percentage */
+    double tropospheric_lapse_rate_K_per_m;
 }
-ACTpolSite;
+ACTpolWeather;
+
+void
+ACTpolWeather_default(ACTpolWeather *weather);
+
+double
+actpol_refraction(ACTpolWeather *weather, double freq_GHz, double alt);
 
 int
-observed_altaz_to_mean_radec( const ACTpolSite *site, double freq_GHz,
+observed_altaz_to_mean_radec( const ACTpolWeather *weather, double freq_GHz,
         int n, const double ctime[], const double alt[], const double az[],
         double ra[], double dec[] );
 

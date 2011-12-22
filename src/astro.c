@@ -118,6 +118,32 @@ actpol_ITRS_to_GCRS_quaternion(double unixtime, Quaternion q)
     */
 }
 
+void
+ACTpolWeather_default(ACTpolWeather *w)
+{
+    w->temperature_K = 273.;
+    w->pressure_mbar = 550.;
+    w->relative_humidity = 0.2;
+    w->tropospheric_lapse_rate_K_per_m = 0.0065;
+}
+
+double
+actpol_refraction(ACTpolWeather *weather, double freq_GHz, double alt)
+{
+    double ref;
+    slaRefro(M_PI_2 - alt,
+        ACTPOL_ELEVATION_METERS,
+        weather->temperature_K,
+        weather->pressure_mbar,
+        weather->relative_humidity,
+        299792.458/freq_GHz, // wavelength [micrometers]
+        ACTPOL_LATITUDE,
+        weather->tropospheric_lapse_rate_K_per_m,
+        1e-8,
+        &ref);
+    return ref;
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // old ACT pointing code
 
@@ -135,7 +161,7 @@ convert_utc_to_tt( double utc )
 }
 
 int
-observed_altaz_to_mean_radec( const ACTpolSite *site, double freq_ghz,
+observed_altaz_to_mean_radec( const ACTpolWeather *weather, double freq_ghz,
         int n, const double ctime[],
         const double alt[], const double az[],
         double ra[], double dec[] )
@@ -160,16 +186,16 @@ observed_altaz_to_mean_radec( const ACTpolSite *site, double freq_ghz,
     double wavelength_um = 299792.458/freq_ghz;
 
     slaAoppa( utc, dut1,
-            site->east_longitude,
-            site->latitude,
-            site->elevation_m,
+            ACTPOL_LONGITUDE_EAST,
+            ACTPOL_LATITUDE,
+            ACTPOL_ELEVATION_METERS,
             arcsec2rad(x),
             arcsec2rad(y),
-            site->temperature_K,
-            site->pressure_mb,
-            site->relative_humidity,
+            weather->temperature_K,
+            weather->pressure_mbar,
+            weather->relative_humidity,
             wavelength_um,
-            0.0065,     // tropospheric lapse rate [K/m]
+            weather->tropospheric_lapse_rate_K_per_m,
             aoprms );
 
     double tt = convert_utc_to_tt( utc );
