@@ -1,0 +1,202 @@
+\documentclass[10pt,preprint]{aastex}
+\usepackage{natbib}
+\bibliographystyle{apj}
+
+%\slugcomment{\today}
+
+\newcommand{\Ovec}{{\vec O}}
+\newcommand{\rhat}{{\hat r}}
+\newcommand{\east}{{\hat E}}
+\newcommand{\rvec}{{\vec r}}
+\newcommand{\uvec}{{\hat r}}
+\newcommand{\zhat}{{\hat z}}
+\newcommand{\slalib}{\texttt{slaLib}}
+\newcommand{\refraction}{\mathrm{slaRefro}}
+\newcommand{\alt}{\mathrm{Alt}}
+\newcommand{\az}{\mathrm{Az}}
+\newcommand{\ITRS}{\mathrm{ITRS}}
+\newcommand{\GCRS}{\mathrm{GCRS}}
+\newcommand{\JD}{\mathrm{JD}}
+\newcommand{\UTone}{\mathrm{UT1}}
+\newcommand{\UTC}{\mathrm{UTC}}
+\newcommand{\ENU}{\mathrm{ENU}}
+\newcommand{\NWU}{\mathrm{NWU}}
+\newcommand{\UEN}{\mathrm{UEN}}
+\newcommand{\LA}{\mathrm{LA}}
+\newcommand{\IERS}{\mathrm{IERS}}
+\newcommand{\rtopo}{{\hat r}_\mathrm{topo}}
+
+\begin{document}
+\title{ACTpol Pointing}
+\author{Mike Nolta\\\today}
+
+\begin{abstract}
+A short note on how to convert from ACTpol to celestial coordinates.
+Effects smaller than $0.1\arcsec$ are neglected.
+\end{abstract}
+
+\section{Miasma Theory}
+%\section{``Since the beginning of time, man has yearned to destroy the atmosphere.''}
+%\subsection{Observed $\to$ Topocentric}
+
+Atmospheric refraction makes objects appear higher in the sky than they really are,
+and so we start by applying an altitude adjustment:
+\begin{equation}
+\alt' = \alt + \refraction(\alt,\{p_i\})
+\end{equation}
+where $\refraction$ is a function in the {\slalib} library, and $\{p_i\}$ is a set of parameters describing the site
+conditions (elevation, pressure, temperature, \dots).
+\begin{eqnarray}
+\rtopo &=& \left(\begin{array}{c}
+\sin \alt'\\
+\cos\alt' \sin\az \\
+\cos\alt' \cos\az \\
+\end{array}\right)
+\end{eqnarray}
+Note that we've chosen a slightly unusual basis ordering: UEN, or ``up, east, north''.
+
+\section{A Journey to the Center of the Earth}
+
+Now we want to shift our coordinates to the Earth's barycenter, which requires
+a combination of a boost (to cancel out the Earth's rotation), a rotation, and a translation.
+
+ACTpol's position on the surface of the Earth, in geocentric coordinates, is
+\begin{eqnarray}
+\Ovec_\ITRS &=& \left(\begin{array}{l}
+(aC+h_G) \cos\phi_G \cos\lambda_G \\
+(aC+h_G) \cos\phi_G \sin\lambda_G \\
+(aS+h_G) \sin\phi_G \\
+\end{array}\right)
+\end{eqnarray}
+where
+\begin{eqnarray}
+1/C^2 &=& \cos^2\phi_G + (1-f)^2\sin^2\phi_G \\
+S &=& (1-f)^2 C \\
+f &=& 1/298.257223563 \\
+a &=& 6378137\,\mathrm{m}
+\end{eqnarray}
+The values of $a$ and $f$ are from WGS84.
+At our level of precision GPS $\approx$ WGS84 $\approx$ ITRS, so we'll use them interchangeably.
+
+%\subsection{Topocentric $\to$ Local Apparent}
+
+Because we observe in a moving reference frame, 
+``Diurnal aberration'' refers to the aberration caused by the Earth's rotation.
+ tilts observed positions towards the direction of motion.
+For $v/c \ll 1$, the amplitude of the effect is $v\sin\theta/c$, where $\theta$ is the angle between
+object and direction of motion.
+
+ACTpol's velocity due to the Earth's rotation is
+\begin{eqnarray}
+\vec v/c &=& \frac{\omega}{c}\zhat_\ITRS\times\Ovec_\ITRS
+\\
+&=& \frac{\omega}{c} (aC+h_G) \cos\phi_G \east
+\\
+&\approx& 0.295043 \arcsec\east
+\end{eqnarray}
+where $\omega = 7.292115\times10^{-5}\,\mathrm{rad/s}$ is the Earth's nominal mean angular speed,
+and $\east$ is unit vector pointing east.
+Let $\vec n = \rtopo\times\east$.
+Since $|\vec n| = \sin\theta$ where $\theta$ is the angle between $\rtopo$ and $\east$,
+\begin{eqnarray}
+\rhat_\LA = R_{\hat n}(-0.295043 \arcsec|\vec n|) \rtopo
+\end{eqnarray}
+
+%\section{Local Apparent $\to$ ITRS}
+
+Now that we've corrected for refraction and diurnal aberration, we need to rotate into geocentric
+coordinates.\footnote{Well, technically we need to translate first, and then rotate, but we'll assume the target is
+infinitely far away and ignore the translation. So this may not be correct for planets.}
+Because we chose the UEN basis for $\rhat_\LA$,
+\begin{eqnarray}
+%\rhat_\ITRS &=& R_3(-\lambda_G) R_2(\phi_G) \rhat_\LA
+%\\
+\rhat_\ITRS &=& R_3(-\lambda_G) R_2(\phi_G-\pi/2) R_3(\pi) \rhat_\NWU
+%\\
+%\rhat_\ITRS &=& R_3(-\lambda_G) R_2(\phi_G-\pi/2) R_3(-\pi/2) \rhat_\ENU
+\end{eqnarray}
+
+\section{ITRS $\to$ GCRS}
+
+Fig.~5.1 of \cite{iers2010}
+
+\begin{eqnarray}
+\rhat_\GCRS &=& R_3(-E) R_2(-d) R_3(E + s - \theta - s')R_2(x_p)R_1(y_p) \rhat_\ITRS \\
+\theta &=& 2\pi(0.7790572732640 + 1.00273781191135448 D_U)
+\end{eqnarray}
+where
+\begin{eqnarray}
+(X,Y,Z) &=& (\sin d \cos E, \sin d \sin E, \cos d)
+\end{eqnarray}
+\begin{enumerate}
+\item $(X,Y,s)$ is calculated by \texttt{iauXys06a}
+\item \texttt{iauEra00} for $\theta$
+\item $s'\approx0$
+\item $(\Delta X,\Delta Y)_{2006} \approx (0,0)$
+\item $(x_p,y_p) \approx (x,y)_\IERS$
+\end{enumerate}
+%$D_U=\JD(\UTone) - 2451545.0$, days since 2000 Jan 1, 12h UT1\\
+
+\section{Plunge Orbit}
+%\section{GCRS $\to$ BCRS}
+
+Shift from the Earth's barycenter to the Solar system's barycenter.
+Annual aberration.
+
+\bibliography{references}
+\appendix
+
+\section{Glossary}
+
+\begin{tabular}{ll}
+BCRS & Barycentric Celestial Reference System \\
+CIO & Celestial Intermediate Origin \\
+CIP & Celestial Intermediate Pole \\
+GCRS & Geocentric Celestial Reference System \\
+GPS & Global Positioning System \\
+ICRS & International Celestial Reference System \\
+ITRS & International Terrestrial Reference System \\
+JD & Julian date \\
+UT1 & Universal Time \\
+UTC & Coordinated Universal Time \\
+WGS84 & World Geodetic System 1984 \\
+$\az$ & observed azimuth \\
+$\alt$ & observed elevation \\
+$h_G$ & geodetic height = 5188 m \\
+$\lambda_G$ & geodetic east longitude = $-67.7876^\circ$ \\
+$\phi_G$ & geodetic latitude = $-22.9585^\circ$ \\
+$R_1(a)$ & $x$-rotation matrix \\
+$R_2(a)$ & $y$-rotation matrix \\
+$R_3(a)$ & $z$-rotation matrix \\
+$s$ & CIO locator \\
+$\theta$ & Earth Rotation Angle \\
+$x_p$, $y_p$ & standard polar wobble parameters \\
+$X$, $Y$, $Z$ & components of unit vector towards the CIP in the GCRS
+\end{tabular}
+
+\begin{eqnarray}
+R_1(\alpha) &=&
+\left(\begin{array}{ccc}
+1 & 0 & 0 \\
+0 & \cos\alpha & \sin\alpha \\
+0 & -\sin\alpha & \cos\alpha \\
+\end{array}\right)
+\\
+R_2(\alpha) &=&
+\left(\begin{array}{ccc}
+\cos\alpha & 0 & -\sin\alpha \\
+0 & 1 & 0 \\
+\sin\alpha & 0 & \cos\alpha \\
+\end{array}\right)
+\\
+R_3(\alpha) &=&
+\left(\begin{array}{ccc}
+\cos\alpha & \sin\alpha & 0 \\
+-\sin\alpha & \cos\alpha & 0 \\
+0 & 0 & 1 \\
+\end{array}\right)
+\end{eqnarray}
+
+\section{Example}
+
+\end{document}
