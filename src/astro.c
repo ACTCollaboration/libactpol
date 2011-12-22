@@ -109,13 +109,6 @@ actpol_ITRS_to_GCRS_quaternion(double unixtime, Quaternion q)
     Quaternion_r3_mul(-E-s+theta+sprime, q);
     Quaternion_r2_mul(d, q);
     Quaternion_r3_mul(E, q);
-    /*
-    Quaternion_r3_mul(-E, q);
-    Quaternion_r2_mul(-d, q);
-    Quaternion_r3_mul(E+s-theta-sprime, q);
-    Quaternion_r2_mul(xp, q);
-    Quaternion_r1_mul(yp, q);
-    */
 }
 
 void
@@ -136,7 +129,7 @@ actpol_refraction(ACTpolWeather *weather, double freq_GHz, double alt)
         weather->temperature_K,
         weather->pressure_mbar,
         weather->relative_humidity,
-        299792.458/freq_GHz, // wavelength [micrometers]
+        299792.458/freq_GHz, // wavelength [microns]
         ACTPOL_LATITUDE,
         weather->tropospheric_lapse_rate_K_per_m,
         1e-8,
