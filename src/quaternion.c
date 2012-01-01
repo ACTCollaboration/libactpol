@@ -5,7 +5,7 @@
 #include "actpol/quaternion.h"
 
 void
-Quaternion_add(Quaternion q, Quaternion a, Quaternion b)
+Quaternion_add(Quaternion q, const Quaternion a, const Quaternion b)
 {
     q[0] = a[0] + b[0];
     q[1] = a[1] + b[1];
@@ -22,7 +22,7 @@ Quaternion_conj(Quaternion q)
 }
 
 void
-Quaternion_copy(Quaternion q, Quaternion a)
+Quaternion_copy(Quaternion q, const Quaternion a)
 {
     q[0] = a[0];
     q[1] = a[1];
@@ -51,7 +51,7 @@ Quaternion_inv(Quaternion q)
 }
 
 void
-Quaternion_mul(Quaternion q, Quaternion a, Quaternion b)
+Quaternion_mul(Quaternion q, const Quaternion a, const Quaternion b)
 {
     q[0] = a[0]*b[0] - a[1]*b[1] - a[2]*b[2] - a[3]*b[3];
     q[1] = a[0]*b[1] + a[1]*b[0] + a[2]*b[3] - a[3]*b[2];
@@ -69,7 +69,7 @@ Quaternion_new(Quaternion q, double w, double x, double y, double z)
 }
 
 double
-Quaternion_norm(Quaternion q)
+Quaternion_norm(const Quaternion q)
 {
     return sqrt(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3]);
 }
@@ -84,7 +84,7 @@ Quaternion_scale(Quaternion q, double scale)
 }
 
 void
-Quaternion_sub(Quaternion q, Quaternion a, Quaternion b)
+Quaternion_sub(Quaternion q, const Quaternion a, const Quaternion b)
 {
     q[0] = a[0] - b[0];
     q[1] = a[1] - b[1];
@@ -93,7 +93,7 @@ Quaternion_sub(Quaternion q, Quaternion a, Quaternion b)
 }
 
 void
-Quaternion_rot(Quaternion q, double angle, double v[3])
+Quaternion_rot(Quaternion q, double angle, const double v[3])
 {
     double angle_2 = 0.5*angle;
     double s = sin(angle_2);
@@ -185,7 +185,7 @@ Quaternion_r3_mul(double angle, Quaternion q)
 }
 
 void
-Quaternion_to_matrix(Quaternion q, double mat[3][3])
+Quaternion_to_matrix(const Quaternion q, double mat[3][3])
 {
     Quaternion u;
     Quaternion_copy(u, q);
@@ -204,3 +204,21 @@ Quaternion_to_matrix(Quaternion q, double mat[3][3])
     mat[2][1] = 2.*(u[2]*u[3] + u[0]*u[1]);
 }
 
+void
+QuaternionSlerp_init(QuaternionSlerp *slerp, const Quaternion a, const Quaternion b)
+{
+    double cos_alpha = a[0]*b[0] + a[1]*b[1] + a[2]*b[2] + a[3]*b[3];
+    slerp->alpha = acos(cos_alpha);
+    slerp->sin_alpha = sqrt(1. - cos_alpha*cos_alpha);
+    Quaternion_copy(slerp->q0, a);
+    Quaternion_copy(slerp->q1, b);
+}
+
+void
+QuaternionSlerp_interpolate(const QuaternionSlerp *slerp, double t, Quaternion q)
+{
+    double s0 = sin((1.-t)*slerp->alpha)/slerp->sin_alpha;
+    double s1 = sin(t*slerp->alpha)/slerp->sin_alpha;
+    for (int i = 0; i != 4; ++i)
+        q[i] = s0*slerp->q0[i] + s1*slerp->q1[i];
+}

@@ -5,4 +5,5 @@
 #include "astro.h"
 #include "constants.h"
 #include "map.h"
+#include "state.h"
 

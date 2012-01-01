@@ -1,8 +1,8 @@
-/*
- * actpol/map.h : libactpol header file
- *
- * 2011 Mike Nolta <mike@nolta.net>
- */
+//
+// actpol/map.h : libactpol header file
+//
+// 2011 Mike Nolta <mike@nolta.net>
+//
 
 #pragma once
 

@@ -16,26 +16,14 @@
 // Julian date for unixtime = 0
 #define UNIX_JD_EPOCH 2440587.5
 
+#ifndef M_PI_2
+#define M_PI_2     1.57079632679489661923  /* pi/2 */
+#endif
+
 static double inline mjd(double jd) { return jd - 2400000.5; }
 
 void
-actpol_ang2vec(double a, double d, double r[3])
-{
-    double cos_d = cos(d);
-    r[0] = cos_d*cos(a);
-    r[1] = cos_d*sin(a);
-    r[2] = sin(d);
-}
-
-void
-actpol_vec2ang(double r[3], double *a, double *d)
-{
-    *a = atan2(r[1], r[0]);
-    *d = atan2(r[2], hypot(r[0],r[1]));
-}
-
-void
-actpol_diurnal_aberration(double r[3], Quaternion q)
+actpol_diurnal_aberration(const double r[3], Quaternion q)
 {
     const double v = 0.295043*M_PI/(180.*3600.);
     double n[3], east[3] = {0.,-1.,0.}; // NWU
@@ -45,24 +33,15 @@ actpol_diurnal_aberration(double r[3], Quaternion q)
 }
 
 void
-actpol_NWU_to_ITRS_quaternion(Quaternion q)
+actpol_rotate_NWU_to_ITRS(Quaternion q)
 {
     Quaternion_r3_mul(M_PI, q);
     Quaternion_r2_mul(M_PI_2 - ACTPOL_LATITUDE, q);
     Quaternion_r3_mul(ACTPOL_LONGITUDE_EAST, q);
 }
 
-/*
 void
-actpol_UEN_to_ITRS_quaternion(Quaternion q)
-{
-    Quaternion_r2(-deg2rad(ACTPOL_LATITUDE_DEG), q);
-    Quaternion_r3_mul(deg2rad(ACTPOL_LONGITUDE_EAST_DEG), q);
-}
-*/
-
-void
-actpol_ITRS_to_GCRS_quaternion(double unixtime, Quaternion q)
+actpol_rotate_ITRS_to_GCRS(double unixtime, Quaternion q)
 {
     const double sprime = 0.; // ~ 1e-4 "
     const double dX06 = 0.; // ~ 1e-4 "
@@ -112,107 +91,10 @@ actpol_ITRS_to_GCRS_quaternion(double unixtime, Quaternion q)
 }
 
 void
-ACTpolWeather_default(ACTpolWeather *w)
+actpol_NWU_to_GCRS_rotation(double unixtime, Quaternion q)
 {
-    w->temperature_K = 273.;
-    w->pressure_mbar = 550.;
-    w->relative_humidity = 0.2;
-    w->tropospheric_lapse_rate_K_per_m = 0.0065;
-}
-
-double
-actpol_refraction(ACTpolWeather *weather, double freq_GHz, double alt)
-{
-    double ref;
-    slaRefro(M_PI_2 - alt,
-        ACTPOL_ELEVATION_METERS,
-        weather->temperature_K,
-        weather->pressure_mbar,
-        weather->relative_humidity,
-        299792.458/freq_GHz, // wavelength [microns]
-        ACTPOL_LATITUDE,
-        weather->tropospheric_lapse_rate_K_per_m,
-        1e-8,
-        &ref);
-    return ref;
-}
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// old ACT pointing code
-
-static double
-convert_ctime_to_utc_mjd( double ctime )
-{
-    // Not strictly correct, because of leap seconds.
-    return secs2days(ctime) + 40587.0;
-}
-
-static double
-convert_utc_to_tt( double utc )
-{
-    return utc + secs2days(slaDtt(utc));
-}
-
-int
-observed_altaz_to_mean_radec( const ACTpolWeather *weather, double freq_ghz,
-        int n, const double ctime[],
-        const double alt[], const double az[],
-        double ra[], double dec[] )
-{
-    assert( n > 0 );
-    assert( ctime != NULL );
-    assert( alt != NULL );
-    assert( az != NULL );
-    assert( ra != NULL );
-    assert( dec != NULL );
-
-    int stat;
-    double dut1, x, y;
-    double amprms[21], aoprms[14];
-
-    double utc = convert_ctime_to_utc_mjd( ctime[0] );
-
-    stat = get_iers_bulletin_a( utc, &dut1, &x, &y );
-    if ( stat != 0 )
-        return stat;
-
-    double wavelength_um = 299792.458/freq_ghz;
-
-    slaAoppa( utc, dut1,
-            ACTPOL_LONGITUDE_EAST,
-            ACTPOL_LATITUDE,
-            ACTPOL_ELEVATION_METERS,
-            arcsec2rad(x),
-            arcsec2rad(y),
-            weather->temperature_K,
-            weather->pressure_mbar,
-            weather->relative_humidity,
-            wavelength_um,
-            weather->tropospheric_lapse_rate_K_per_m,
-            aoprms );
-
-    double tt = convert_utc_to_tt( utc );
-    // using tt instead of tdb
-    slaMappa( 2000.0, tt, amprms );
-    //printf( "freq = %g\n", freq_ghz );
-
-    for ( int i = 0; i < n; i++ )
-    {
-        double observed_az = az[i];
-        double observed_zenith = M_PI/2 - alt[i];
-        double apparent_ra, apparent_dec;
-
-        utc = convert_ctime_to_utc_mjd( ctime[i] );
-        slaAoppat( utc, aoprms );
-
-        slaOapqk( "A", observed_az, observed_zenith, aoprms,
-                &apparent_ra, &apparent_dec );
-
-        //printf( "apparent ra,dec = %g, %g\n", apparent_ra, apparent_dec );
-
-        slaAmpqk( apparent_ra, apparent_dec, amprms, ra+i, dec+i );
-    }
-
-    return 0;
+    Quaternion_identity(q);
+    actpol_rotate_NWU_to_ITRS(q);
+    actpol_rotate_ITRS_to_GCRS(unixtime, q);
 }
 

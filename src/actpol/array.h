@@ -1,31 +1,23 @@
-/*
- * actpol/array.h : libactpol header file
- *
- * 2011 Mike Nolta <mike@nolta.net>
- */
+//
+// actpol/array.h : libactpol header file
+//
+// 2011 Mike Nolta <mike@nolta.net>
+//
 
 #pragma once
 
-#include "quaternion.h"
+#include "state.h"
 
 typedef struct
 {
     int ndets;
+    double freq_GHz;
     double boresight_offset_alt;
     double boresight_offset_az;
     double *alt_offset;
     double *az_offset;
 }
 ACTpolArray;
-
-typedef struct
-{
-    ACTpolArray *array;
-    double *az, *alt;
-    double *ra, *dec;
-    double *cos2alpha, *sin2alpha;
-}
-ACTpolArraySnapshot;
 
 ACTpolArray *
 ACTpolArray_alloc(int ndets);
@@ -34,11 +26,35 @@ void
 ACTpolArray_free(ACTpolArray *array);
 
 int
-actpol_get_detector_alt_az(const ACTpolArray *array, int index,
+ACTpolArray_detector_alt_az(const ACTpolArray *array, int index,
         double boresite_alt, double boresite_az, double *alt, double *az);
 
+typedef struct
+{
+    const ACTpolArray *array;
+    double *ref;
+    double *az, *alt;
+    double *ra, *dec;
+    double *cos2alpha, *sin2alpha;
+}
+ACTpolArraySnapshot;
+
+ACTpolArraySnapshot *
+ACTpolArraySnapshot_alloc(const ACTpolArray *array);
+
+void
+ACTpolArraySnapshot_free(ACTpolArraySnapshot *array);
+
+void
+ACTpolArraySnapshot_update_refraction(ACTpolArraySnapshot *snapshot,
+        const ACTpolState *state);
+
 int
-ACTpolArray_compute_snapshot(ACTpolArray *array, Quaternion q, ACTpolArraySnapshot *snapshot);
+ACTpolArraySnapshot_update_coords(ACTpolArraySnapshot *snapshot,
+        const ACTpolState *state);
+int
+ACTpolArraySnapshot_update_coords_fast(ACTpolArraySnapshot *snapshot,
+        const ACTpolState *state);
 
 #ifdef __cplusplus
 }

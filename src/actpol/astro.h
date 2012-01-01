@@ -1,17 +1,17 @@
-/*
- * actpol/astro.h : libactpol header file
- *
- * Mike Nolta <mike@nolta.net>
- */
+//
+// actpol/astro.h : libactpol header file
+//
+// 2011 Mike Nolta <mike@nolta.net>
+//
 
 #pragma once
 
+// get definition of M_PI
 #include <math.h>
-#include "quaternion.h"
+#include "constants.h"
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
+#include "quaternion.h"
+#include "state.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,39 +20,35 @@ extern "C" {
 static inline double secs2days( double s ) { return s/86400.; }
 static inline double deg2rad( double deg ) { return deg*M_PI/180.; }
 static inline double rad2deg( double rad ) { return rad*180./M_PI; }
-static inline double arcsec2rad( double sec ) { return deg2rad(sec/3600.); }
+static inline double arcsec2rad( double sec ) { return sec*M_PI/(180*3600); }
 
-typedef struct
+static inline void
+actpol_ang2vec(double a, double d, double r[3])
 {
-    double temperature_K;
-    double pressure_mbar;
-    double relative_humidity;   /* percentage */
-    double tropospheric_lapse_rate_K_per_m;
+    double cos_d = cos(d);
+    r[0] = cos_d*cos(a);
+    r[1] = cos_d*sin(a);
+    r[2] = sin(d);
 }
-ACTpolWeather;
+
+static inline void
+actpol_vec2ang(const double r[3], double *a, double *d)
+{
+    *a = atan2(r[1], r[0]);
+    *d = atan2(r[2], hypot(r[0],r[1]));
+}
 
 void
-ACTpolWeather_default(ACTpolWeather *weather);
-
-double
-actpol_refraction(ACTpolWeather *weather, double freq_GHz, double alt);
-
-int
-observed_altaz_to_mean_radec( const ACTpolWeather *weather, double freq_GHz,
-        int n, const double ctime[], const double alt[], const double az[],
-        double ra[], double dec[] );
-
-void actpol_ang2vec(double alt, double az, double r[3]);
-void actpol_vec2ang(double r[3], double *alt, double *az);
+actpol_diurnal_aberration(const double r[3], Quaternion q);
 
 void
-actpol_diurnal_aberration(double r[3], Quaternion q);
+actpol_rotate_NWU_to_ITRS(Quaternion q);
 
 void
-actpol_NWU_to_ITRS_quaternion(Quaternion q);
+actpol_rotate_ITRS_to_GCRS(double unixtime, Quaternion q);
 
 void
-actpol_ITRS_to_GCRS_quaternion(double unixtime, Quaternion q);
+actpol_NWU_to_GCRS_rotation(double unixtime, Quaternion q);
 
 #ifdef __cplusplus
 }

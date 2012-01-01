@@ -8,6 +8,8 @@
 #include <wcslib/wcslib.h>
 
 #include "actpol/actpol.h"
+#include "actpol/oldact.h"
+#include "actpol/vec3.h"
 
 #define TEST_FILENAME "/tmp/libactpol_test_map.fits";
 
@@ -69,8 +71,6 @@ test_map(void)
     ACTpolMap_free(map);
 }
 
-double vector_norm(double v[3]) { return sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]); }
-
 void
 print_mat(double mat[3][3])
 {
@@ -88,15 +88,7 @@ void
 print_vec(const char *s, double q[3])
 {
     printf("%s %+.15e %+.15e %+.15e\n", s, q[0], q[1], q[2]);
-    printf("%s norm = %.15e\n", s, vector_norm(q));
-}
-
-void
-matrix_x_vector(double a[3], double m[3][3], double v[3])
-{
-    a[0] = m[0][0]*v[0] + m[0][1]*v[1] + m[0][2]*v[2];
-    a[1] = m[1][0]*v[0] + m[1][1]*v[1] + m[1][2]*v[2];
-    a[2] = m[2][0]*v[0] + m[2][1]*v[1] + m[2][2]*v[2];
+    printf("%s norm = %.15e\n", s, vec3_norm(q));
 }
 
 void
@@ -144,14 +136,25 @@ check_horizon_to_itrs(double alt, double az)
 
     actpol_ang2vec(-az, alt, h);
     Quaternion_identity(q);
-    actpol_NWU_to_ITRS_quaternion(q);
+    actpol_rotate_NWU_to_ITRS(q);
     Quaternion_to_matrix(q, mat);
-    matrix_x_vector(r, mat, h);
+    matrix_times_vec3(r, mat, h);
     //print_vec("quat", r);
 
     assert(fabs(r[0] - t[0]) < 1e-15);
     assert(fabs(r[1] - t[1]) < 1e-15);
     assert(fabs(r[2] - t[2]) < 1e-15);
+}
+
+void
+ACTSite_init(ACTSite *s)
+{
+    s->latitude = ACTPOL_LATITUDE;
+    s->east_longitude = ACTPOL_LONGITUDE_EAST;
+    s->elevation_m = ACTPOL_ELEVATION_METERS;
+    s->temperature_K = 273.;
+    s->pressure_mb = 550.;
+    s->relative_humidity = 0.2;
 }
 
 void
@@ -171,14 +174,16 @@ test_astro(void)
     actpol_ang2vec(-az, alt-ref, r);
     Quaternion_identity(q);
     //actpol_diurnal_aberration(r, q);
-    actpol_NWU_to_ITRS_quaternion(q);
-    actpol_ITRS_to_GCRS_quaternion(unixtime, q);
+    actpol_rotate_NWU_to_ITRS(q);
+    actpol_rotate_ITRS_to_GCRS(unixtime, q);
     Quaternion_to_matrix(q, mat);
-    matrix_x_vector(rp, mat, r);
+    matrix_times_vec3(rp, mat, r);
     actpol_vec2ang(rp, &ra, &dec);
     printf("noltaq ra, dec = %g, %g\n", rad2deg(ra), rad2deg(dec));
 
-    observed_altaz_to_mean_radec( &weather, freq_GHz, 1, &unixtime, &alt, &az, &ra, &dec );
+    ACTSite site;
+    ACTSite_init(&site);
+    observed_altaz_to_mean_radec( &site, freq_GHz, 1, &unixtime, &alt, &az, &ra, &dec );
     printf("slalib ra, dec = %g, %g\n", rad2deg(ra), rad2deg(dec));
 }
 

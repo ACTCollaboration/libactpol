@@ -4,7 +4,10 @@ nobase_include_HEADERS = actpol/actpol.h \
 			 actpol/astro.h \
 			 actpol/constants.h \
 			 actpol/map.h \
-			 actpol/quaternion.h
+			 actpol/oldact.h \
+			 actpol/quaternion.h \
+			 actpol/scan.h \
+			 actpol/state.h
 
 lib_LIBRARIES = libactpol.a
 libactpol_a_SOURCES = array.c \
@@ -12,7 +15,10 @@ libactpol_a_SOURCES = array.c \
 		      iers_bulletin_a.c \
 		      iers_bulletin_a.h \
 		      map.c \
-		      quaternion.c
+		      oldact.c \
+		      quaternion.c \
+		      scan.c \
+		      state.c
 
 check_PROGRAMS = test
 test_LDADD = libactpol.a -lcfitsio -lslalib -lsofa_c -lwcs

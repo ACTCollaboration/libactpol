@@ -10,13 +10,13 @@ typedef double Quaternion[4];
 void Quaternion_new(Quaternion q, double w, double x, double y, double z);
 
 // q = a + b
-void Quaternion_add(Quaternion q, Quaternion a, Quaternion b);
+void Quaternion_add(Quaternion q, const Quaternion a, const Quaternion b);
 
 // q = q*
 void Quaternion_conj(Quaternion q);
 
 // q = a
-void Quaternion_copy(Quaternion q, Quaternion a);
+void Quaternion_copy(Quaternion q, const Quaternion a);
 
 // q = (1,0,0,0)
 void Quaternion_identity(Quaternion q);
@@ -25,13 +25,13 @@ void Quaternion_identity(Quaternion q);
 void Quaternion_inv(Quaternion q);
 
 // q = a * b
-void Quaternion_mul(Quaternion q, Quaternion a, Quaternion b);
+void Quaternion_mul(Quaternion q, const Quaternion a, const Quaternion b);
 
 // |q|
-double Quaternion_norm(Quaternion q);
+double Quaternion_norm(const Quaternion q);
 
 // q = (rotate by angle around arbitrary vector v)
-void Quaternion_rot(Quaternion q, double angle, double v[3]);
+void Quaternion_rot(Quaternion q, double angle, const double v[3]);
 
 // q = R_i(angle)
 void Quaternion_r1(Quaternion q, double angle);
@@ -47,9 +47,24 @@ void Quaternion_r3_mul(double angle, Quaternion q);
 void Quaternion_scale(Quaternion q, double scale);
 
 // q = a - b
-void Quaternion_sub(Quaternion q, Quaternion a, Quaternion b);
+void Quaternion_sub(Quaternion q, const Quaternion a, const Quaternion b);
 
-void Quaternion_to_matrix(Quaternion q, double mat[3][3]);
+void Quaternion_to_matrix(const Quaternion q, double mat[3][3]);
+
+//
+
+typedef struct
+{
+    Quaternion q0, q1;
+    double alpha, sin_alpha;
+}
+QuaternionSlerp;
+
+void
+QuaternionSlerp_init(QuaternionSlerp *slerp, const Quaternion a, const Quaternion b);
+
+void
+QuaternionSlerp_interpolate(const QuaternionSlerp *slerp, double t, Quaternion z);
 
 #ifdef __cplusplus
 }
