@@ -7,6 +7,7 @@
 #pragma once
 
 #include "state.h"
+#include "quaternion.h"
 
 typedef struct
 {
@@ -50,7 +51,7 @@ ACTpolArrayCoords_update_refraction(ACTpolArrayCoords *coords,
         const ACTpolState *state);
 
 int
-ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state);
+ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state, const Quaternion q);
 
 #ifdef __cplusplus
 }

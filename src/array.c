@@ -95,7 +95,7 @@ ACTpolArrayCoords_update_refraction(ACTpolArrayCoords *coords, const ACTpolState
 }
 
 int
-ACTpolArrayCoords_update_coords(ACTpolArrayCoords *coords, const ACTpolState *state, const Quaternion q)
+ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state, const Quaternion q)
 {
     const ACTpolArray *array = coords->array;
     double mat[3][3];
