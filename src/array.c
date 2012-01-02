@@ -27,7 +27,7 @@ ACTpolArray_free(ACTpolArray *array)
 }
 
 int
-ACTpolArray_center_altaz(const ACTpolArray *array,
+ACTpolArray_center_alt_az(const ACTpolArray *array,
         const ACTpolState *state, double *alt, double *az)
 {
     *alt = state->boresight_alt
@@ -39,7 +39,7 @@ ACTpolArray_center_altaz(const ACTpolArray *array,
 }
 
 int
-ACTpolArray_detector_alt_az(const ACTpolArray *array, int index,
+ACTpolArray_horn_alt_az(const ACTpolArray *array, int index,
         const ACTpolState *state, double *alt, double *az)
 {
     assert(index >= 0 && index < array->nhorns);
@@ -89,7 +89,7 @@ ACTpolArrayCoords_update_refraction(ACTpolArrayCoords *coords, const ACTpolState
     for (int i = 0; i != coords->array->nhorns; ++i)
     {
         double alt, az;
-        ACTpolArray_detector_alt_az(coords->array, i, state, &alt, &az);
+        ACTpolArray_horn_alt_az(coords->array, i, state, &alt, &az);
         coords->ref[i] = actpol_refraction(&state->weather, array->freq_GHz, alt);
     }
 }
@@ -106,7 +106,7 @@ ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state, co
     for (int i = 0; i != array->nhorns; ++i)
     {
         double alt, az;
-        ACTpolArray_detector_alt_az(array, i, state, &alt, &az);
+        ACTpolArray_horn_alt_az(array, i, state, &alt, &az);
         alt -= coords->ref[i]; // correct for refraction
 
         coords->alt[i] = alt;

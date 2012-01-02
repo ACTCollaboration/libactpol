@@ -27,7 +27,11 @@ void
 ACTpolArray_free(ACTpolArray *array);
 
 int
-ACTpolArray_detector_alt_az(const ACTpolArray *array, int index,
+ACTpolArray_center_alt_az(const ACTpolArray *array,
+        const ACTpolState *state, double *alt, double *az);
+
+int
+ACTpolArray_horn_alt_az(const ACTpolArray *array, int index,
         const ACTpolState *state, double *alt, double *az);
 
 typedef struct
