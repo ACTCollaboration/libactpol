@@ -7,7 +7,6 @@
 #pragma once
 
 #include "state.h"
-#include "quaternion.h"
 
 typedef struct
 {
@@ -50,12 +49,14 @@ ACTpolArrayCoords_alloc(const ACTpolArray *array);
 void
 ACTpolArrayCoords_free(ACTpolArrayCoords *array);
 
+// refraction correction only needs to be calculated once per scan,
+// or when the weather changes.
 void
 ACTpolArrayCoords_update_refraction(ACTpolArrayCoords *coords,
         const ACTpolState *state);
 
 int
-ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state, const Quaternion q);
+ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state);
 
 #ifdef __cplusplus
 }

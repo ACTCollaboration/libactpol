@@ -95,12 +95,12 @@ ACTpolArrayCoords_update_refraction(ACTpolArrayCoords *coords, const ACTpolState
 }
 
 int
-ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state, const Quaternion q)
+ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state)
     __attribute__((hot)) // tells gcc this is a hotspot
 {
     const ACTpolArray *array = coords->array;
     double mat[3][3];
-    Quaternion_to_matrix(q, mat);
+    Quaternion_to_matrix(state->q, mat);
 
     #pragma omp parallel for
     for (int i = 0; i != array->nhorns; ++i)

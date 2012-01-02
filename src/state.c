@@ -39,7 +39,10 @@ ACTpolState *
 ACTpolState_alloc(void)
 {
     ACTpolState *state = (ACTpolState *)malloc(sizeof(ACTpolState));
+    assert(state);
     ACTpolWeather_default(&state->weather);
+    state->slerp_unixtime0 = 0.;
+    state->slerp_length = 660.; // 11 minutes
     return state;
 }
 
@@ -47,5 +50,36 @@ void
 ACTpolState_free(ACTpolState *state)
 {
     free(state);
+}
+
+
+void
+ACTpolState_update_boresight(ACTpolState *state, double alt, double az)
+{
+    state->boresight_alt = alt;
+    state->boresight_az = az;
+}
+
+void
+ACTpolState_update_unixtime(ACTpolState *state, double unixtime)
+{
+    state->unixtime = unixtime;
+    actpol_NWU_to_GCRS_rotation(unixtime, state->q);
+}
+
+void
+ACTpolState_update_unixtime_fast(ACTpolState *state, double unixtime)
+{
+    state->unixtime = unixtime;
+    double t = (unixtime - state->slerp_unixtime0)/state->slerp_length;
+    if (0. <= t && t <= 1.) {
+        QuaternionSlerp_interpolate(&state->slerp, t, state->q);
+    } else {
+        Quaternion q1;
+        state->slerp_unixtime0 = unixtime;
+        actpol_NWU_to_GCRS_rotation(unixtime, state->q);
+        actpol_NWU_to_GCRS_rotation(unixtime + state->slerp_length, q1);
+        QuaternionSlerp_init(&state->slerp, state->q, q1);
+    }
 }
 
