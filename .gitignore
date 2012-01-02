@@ -1,6 +1,7 @@
 *.[oa]
 *~
 /src/test
+/run_configure
 
 # configure
 /Makefile
