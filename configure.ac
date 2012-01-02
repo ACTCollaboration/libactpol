@@ -28,6 +28,7 @@ AC_CHECK_HEADERS([limits.h stdlib.h string.h])
 AC_C_CONST
 AC_C_INLINE
 AC_TYPE_SIZE_T
+AC_OPENMP
 
 # Checks for library functions.
 AC_FUNC_MALLOC
