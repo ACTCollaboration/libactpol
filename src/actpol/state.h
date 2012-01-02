@@ -32,7 +32,6 @@ typedef struct
     double boresight_alt;
     double boresight_az;
     double unixtime;
-    Quaternion q;
     ACTpolWeather weather;
 }
 ACTpolState;
@@ -42,9 +41,6 @@ ACTpolState_alloc(void);
 
 void
 ACTpolState_free(ACTpolState *state);
-
-int
-ACTpolState_update_time(ACTpolState *state, double unixtime);
 
 #ifdef __cplusplus
 }

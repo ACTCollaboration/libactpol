@@ -49,15 +49,3 @@ ACTpolState_free(ACTpolState *state)
     free(state);
 }
 
-int
-ACTpolState_update_time(ACTpolState *state, double unixtime)
-{
-    Quaternion q;
-    Quaternion_identity(q);
-    actpol_rotate_NWU_to_ITRS(q);
-    actpol_rotate_ITRS_to_GCRS(unixtime, q);
-
-    state->unixtime = unixtime;
-    Quaternion_copy(state->q, q);
-    return 0;
-}
