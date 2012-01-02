@@ -6,7 +6,6 @@ nobase_include_HEADERS = actpol/actpol.h \
 			 actpol/map.h \
 			 actpol/oldact.h \
 			 actpol/quaternion.h \
-			 actpol/scan.h \
 			 actpol/state.h
 
 lib_LIBRARIES = libactpol.a
@@ -17,7 +16,6 @@ libactpol_a_SOURCES = array.c \
 		      map.c \
 		      oldact.c \
 		      quaternion.c \
-		      scan.c \
 		      state.c
 
 check_PROGRAMS = test
