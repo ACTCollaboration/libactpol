@@ -52,9 +52,6 @@ ACTpolArraySnapshot_update_refraction(ACTpolArraySnapshot *snapshot,
 int
 ACTpolArraySnapshot_update_coords(ACTpolArraySnapshot *snapshot,
         const ACTpolState *state);
-int
-ACTpolArraySnapshot_update_coords_fast(ACTpolArraySnapshot *snapshot,
-        const ACTpolState *state);
 
 #ifdef __cplusplus
 }
