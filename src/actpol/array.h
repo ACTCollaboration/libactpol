@@ -10,10 +10,10 @@
 
 typedef struct
 {
-    int ndets;
     double freq_GHz;
     double boresight_offset_alt;
     double boresight_offset_az;
+    int nhorns;
     double *alt_offset;
     double *az_offset;
 }
@@ -27,7 +27,7 @@ ACTpolArray_free(ACTpolArray *array);
 
 int
 ACTpolArray_detector_alt_az(const ACTpolArray *array, int index,
-        double boresite_alt, double boresite_az, double *alt, double *az);
+        const ACTpolState *state, double *alt, double *az);
 
 typedef struct
 {
