@@ -54,50 +54,50 @@ ACTpolArray_detector_alt_az(const ACTpolArray *array, int index,
     return 0;
 }
 
-ACTpolArraySnapshot *
-ACTpolArraySnapshot_alloc(const ACTpolArray *array)
+ACTpolArrayCoords *
+ACTpolArrayCoords_alloc(const ACTpolArray *array)
 {
-    ACTpolArraySnapshot *snapshot = (ACTpolArraySnapshot *)malloc(sizeof(ACTpolArraySnapshot));
-    snapshot->array = array;
-    snapshot->ref = (double *)malloc(sizeof(double) * array->nhorns);
-    snapshot->az = (double *)malloc(sizeof(double) * array->nhorns);
-    snapshot->alt = (double *)malloc(sizeof(double) * array->nhorns);
-    snapshot->ra = (double *)malloc(sizeof(double) * array->nhorns);
-    snapshot->dec = (double *)malloc(sizeof(double) * array->nhorns);
-    snapshot->sin2alpha = (double *)malloc(sizeof(double) * array->nhorns);
-    snapshot->cos2alpha = (double *)malloc(sizeof(double) * array->nhorns);
-    return snapshot;
+    ACTpolArrayCoords *coords = (ACTpolArrayCoords *)malloc(sizeof(ACTpolArrayCoords));
+    coords->array = array;
+    coords->ref = (double *)malloc(sizeof(double) * array->nhorns);
+    coords->az = (double *)malloc(sizeof(double) * array->nhorns);
+    coords->alt = (double *)malloc(sizeof(double) * array->nhorns);
+    coords->ra = (double *)malloc(sizeof(double) * array->nhorns);
+    coords->dec = (double *)malloc(sizeof(double) * array->nhorns);
+    coords->sin2alpha = (double *)malloc(sizeof(double) * array->nhorns);
+    coords->cos2alpha = (double *)malloc(sizeof(double) * array->nhorns);
+    return coords;
 }
 
 void
-ACTpolArraySnapshot_free(ACTpolArraySnapshot *snapshot)
+ACTpolArrayCoords_free(ACTpolArrayCoords *coords)
 {
-    free(snapshot->cos2alpha);
-    free(snapshot->sin2alpha);
-    free(snapshot->dec);
-    free(snapshot->ra);
-    free(snapshot->alt);
-    free(snapshot->az);
-    free(snapshot->ref);
-    free(snapshot);
+    free(coords->cos2alpha);
+    free(coords->sin2alpha);
+    free(coords->dec);
+    free(coords->ra);
+    free(coords->alt);
+    free(coords->az);
+    free(coords->ref);
+    free(coords);
 }
 
 void
-ACTpolArraySnapshot_update_refraction(ACTpolArraySnapshot *snapshot, const ACTpolState *state)
+ACTpolArrayCoords_update_refraction(ACTpolArrayCoords *coords, const ACTpolState *state)
 {
-    const ACTpolArray *array = snapshot->array;
-    for (int i = 0; i != snapshot->array->nhorns; ++i)
+    const ACTpolArray *array = coords->array;
+    for (int i = 0; i != coords->array->nhorns; ++i)
     {
         double alt, az;
-        ACTpolArray_detector_alt_az(snapshot->array, i, state, &alt, &az);
-        snapshot->ref[i] = actpol_refraction(&state->weather, array->freq_GHz, alt);
+        ACTpolArray_detector_alt_az(coords->array, i, state, &alt, &az);
+        coords->ref[i] = actpol_refraction(&state->weather, array->freq_GHz, alt);
     }
 }
 
 int
-ACTpolArraySnapshot_update_coords(ACTpolArraySnapshot *snapshot, const ACTpolState *state, const Quaternion q)
+ACTpolArrayCoords_update_coords(ACTpolArrayCoords *coords, const ACTpolState *state, const Quaternion q)
 {
-    const ACTpolArray *array = snapshot->array;
+    const ACTpolArray *array = coords->array;
     double mat[3][3];
     Quaternion_to_matrix(q, mat);
 
@@ -106,10 +106,10 @@ ACTpolArraySnapshot_update_coords(ACTpolArraySnapshot *snapshot, const ACTpolSta
     {
         double alt, az;
         ACTpolArray_detector_alt_az(array, i, state, &alt, &az);
-        alt -= snapshot->ref[i]; // correct for refraction
+        alt -= coords->ref[i]; // correct for refraction
 
-        snapshot->alt[i] = alt;
-        snapshot->az[i] = az;
+        coords->alt[i] = alt;
+        coords->az[i] = az;
 
         // rotate horizon -> celestial
         double r_h[3], r_c[3];
@@ -124,10 +124,10 @@ ACTpolArraySnapshot_update_coords(ACTpolArraySnapshot *snapshot, const ACTpolSta
 
         matrix_times_vec3(r_c, mat, r_h);
 
-        actpol_vec2ang(r_c, snapshot->ra+i, snapshot->dec+i);
+        actpol_vec2ang(r_c, coords->ra+i, coords->dec+i);
         /*
-        snapshot->ra[i] = atan2(r_c[1], r_c[0]);
-        snapshot->dec[i] = atan2(r_c[2], hypot(r_c[0],r_c[1]));
+        coords->ra[i] = atan2(r_c[1], r_c[0]);
+        coords->dec[i] = atan2(r_c[2], hypot(r_c[0],r_c[1]));
         */
     }
 

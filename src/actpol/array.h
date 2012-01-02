@@ -37,21 +37,20 @@ typedef struct
     double *ra, *dec;
     double *cos2alpha, *sin2alpha;
 }
-ACTpolArraySnapshot;
+ACTpolArrayCoords;
 
-ACTpolArraySnapshot *
-ACTpolArraySnapshot_alloc(const ACTpolArray *array);
-
-void
-ACTpolArraySnapshot_free(ACTpolArraySnapshot *array);
+ACTpolArrayCoords *
+ACTpolArrayCoords_alloc(const ACTpolArray *array);
 
 void
-ACTpolArraySnapshot_update_refraction(ACTpolArraySnapshot *snapshot,
+ACTpolArrayCoords_free(ACTpolArrayCoords *array);
+
+void
+ACTpolArrayCoords_update_refraction(ACTpolArrayCoords *coords,
         const ACTpolState *state);
 
 int
-ACTpolArraySnapshot_update_coords(ACTpolArraySnapshot *snapshot,
-        const ACTpolState *state);
+ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state);
 
 #ifdef __cplusplus
 }
