@@ -12,17 +12,16 @@ ACTpolArray_alloc(int nhorns)
 {
     ACTpolArray *array;
     array = (ACTpolArray *)malloc(sizeof(ACTpolArray));
+    assert(array);
     array->nhorns = nhorns;
-    array->alt_offset = (double *)malloc(nhorns*sizeof(double));
-    array->az_offset = (double *)malloc(nhorns*sizeof(double));
+    array->horn = (ACTpolFeedhorn *)malloc(nhorns*sizeof(ACTpolFeedhorn));
     return array;
 }
 
 void
 ACTpolArray_free(ACTpolArray *array)
 {
-    free(array->az_offset);
-    free(array->alt_offset);
+    free(array->horn);
     free(array);
 }
 
@@ -46,10 +45,10 @@ ACTpolArray_horn_alt_az(const ACTpolArray *array, int index,
 
     *alt = state->boresight_alt
          + array->boresight_offset_alt
-         + array->alt_offset[index];
+         + array->horn[index].alt_offset;
     *az = state->boresight_az
         + array->boresight_offset_az
-        + array->az_offset[index];
+        + array->horn[index].az_offset;
 
     return 0;
 }

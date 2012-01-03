@@ -10,17 +10,23 @@
 
 typedef struct
 {
+    double alt_offset;
+    double az_offset;
+}
+ACTpolFeedhorn;
+
+typedef struct
+{
     double freq_GHz;
     double boresight_offset_alt;
     double boresight_offset_az;
     int nhorns;
-    double *alt_offset;
-    double *az_offset;
+    ACTpolFeedhorn *horn;
 }
 ACTpolArray;
 
 ACTpolArray *
-ACTpolArray_alloc(int ndets);
+ACTpolArray_alloc(int nhorns);
 
 void
 ACTpolArray_free(ACTpolArray *array);
