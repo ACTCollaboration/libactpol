@@ -18,6 +18,9 @@ libactpol_a_SOURCES = array.c \
 		      quaternion.c \
 		      state.c
 
+bin_PROGRAMS = actpol_refraction
+actpol_refraction_LDADD = libactpol.a -lcfitsio -lslalib -lsofa_c -lwcs
+
 check_PROGRAMS = test
 test_LDADD = libactpol.a -lcfitsio -lslalib -lsofa_c -lwcs
 #test_map_LDADD = libactpol.a -lcfitsio -lwcs
