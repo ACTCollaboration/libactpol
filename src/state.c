@@ -12,7 +12,7 @@
 void
 ACTpolWeather_default(ACTpolWeather *w)
 {
-    w->temperature_K = 273.;
+    w->temperature_C = 0.;
     w->pressure_mbar = 550.;
     w->relative_humidity = 0.2;
     w->tropospheric_lapse_rate_K_per_m = 0.0065;
@@ -22,9 +22,10 @@ double
 actpol_refraction(const ACTpolWeather *weather, double freq_GHz, double alt)
 {
     double ref;
+    double temperature_K = weather->temperature_C + 273.15;
     slaRefro(M_PI_2 - alt,
         ACTPOL_ELEVATION_METERS,
-        weather->temperature_K,
+        temperature_K,
         weather->pressure_mbar,
         weather->relative_humidity,
         SPEED_OF_LIGHT_M_PER_S*1e-3/freq_GHz, // wavelength [microns]

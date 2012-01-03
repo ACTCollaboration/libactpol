@@ -14,7 +14,7 @@ extern "C" {
 
 typedef struct
 {
-    double temperature_K;
+    double temperature_C;
     double pressure_mbar;
     double relative_humidity; // percentage
     double tropospheric_lapse_rate_K_per_m;
