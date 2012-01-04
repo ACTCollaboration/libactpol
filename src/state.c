@@ -53,12 +53,23 @@ ACTpolState_free(ACTpolState *state)
     free(state);
 }
 
+void
+actpol_rotate_focalplane_to_NWU(double boresight_alt, double boresight_az, Quaternion q)
+{
+    Quaternion_r3_mul(M_PI, q);
+    Quaternion_r2_mul(M_PI_2 - boresight_alt, q);
+    Quaternion_r3_mul(-boresight_az, q);
+}
 
 void
-ACTpolState_update_boresight(ACTpolState *state, double alt, double az)
+ACTpolState_update_boresight(ACTpolState *state, double encoding_alt, double encoding_az)
 {
-    state->boresight_alt = alt;
-    state->boresight_az = az;
+    state->boresight_alt = encoding_alt;
+    state->boresight_az = encoding_az;
+
+    Quaternion_identity(state->focalplane_to_NWU);
+    actpol_rotate_focalplane_to_NWU(state->boresight_alt, state->boresight_az,
+        state->focalplane_to_NWU);
 }
 
 void

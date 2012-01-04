@@ -27,6 +27,9 @@ ACTpolWeather_default(ACTpolWeather *weather);
 double
 actpol_refraction(const ACTpolWeather *weather, double freq_GHz, double alt);
 
+void
+actpol_rotate_focalplane_to_NWU(double boresight_alt, double boresight_az, Quaternion q);
+
 typedef struct
 {
     double boresight_alt;
@@ -38,6 +41,8 @@ typedef struct
     QuaternionSlerp slerp;
     double slerp_unixtime0;
     double slerp_length;
+
+    Quaternion focalplane_to_NWU;
 }
 ACTpolState;
 
@@ -54,7 +59,7 @@ void
 ACTpolState_update_unixtime_fast(ACTpolState *state, double unixtime);
 
 void
-ACTpolState_update_boresight(ACTpolState *state, double alt, double az);
+ACTpolState_update_boresight(ACTpolState *state, double encoding_alt, double encoding_az);
 
 #ifdef __cplusplus
 }

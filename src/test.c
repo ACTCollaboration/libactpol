@@ -126,6 +126,21 @@ altaz2itrs(double alt, double az, double r[3])
 }
 
 void
+check_focalplane_to_NWU(double alt, double az)
+{
+    double r[3], mat[3][3];
+    Quaternion q;
+    Quaternion_identity(q);
+    actpol_rotate_focalplane_to_NWU(alt, az, q);
+
+    Quaternion_to_matrix(q, mat);
+    actpol_ang2vec(-az, alt, r);
+
+    for (int i = 0; i != 3; ++i)
+        assert(fabs(r[i] - mat[i][2]) < 2e-16);
+}
+
+void
 check_horizon_to_itrs(double alt, double az)
 {
     double t[3], h[3], r[3], mat[3][3];
@@ -141,9 +156,8 @@ check_horizon_to_itrs(double alt, double az)
     matrix_times_vec3(r, mat, h);
     //print_vec("quat", r);
 
-    assert(fabs(r[0] - t[0]) < 1e-15);
-    assert(fabs(r[1] - t[1]) < 1e-15);
-    assert(fabs(r[2] - t[2]) < 1e-15);
+    for (int i = 0; i != 3; ++i)
+        assert(fabs(r[i] - t[i]) < 3e-16);
 }
 
 void
@@ -167,6 +181,7 @@ test_astro(void)
     ACTpolWeather weather;
     ACTpolWeather_default(&weather);
 
+    check_focalplane_to_NWU(alt, az);
     check_horizon_to_itrs(alt, az);
 
     double ref = actpol_refraction(&weather, freq_GHz, alt);
