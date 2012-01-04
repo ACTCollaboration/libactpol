@@ -7,25 +7,60 @@ extern "C" {
 
 typedef double Quaternion[4];
 
-void Quaternion_new(Quaternion q, double w, double x, double y, double z);
-
 // q = a + b
-void Quaternion_add(Quaternion q, const Quaternion a, const Quaternion b);
+static inline void
+Quaternion_add(Quaternion q, const Quaternion a, const Quaternion b)
+{
+    q[0] = a[0] + b[0];
+    q[1] = a[1] + b[1];
+    q[2] = a[2] + b[2];
+    q[3] = a[3] + b[3];
+}
 
 // q = q*
-void Quaternion_conj(Quaternion q);
+static inline void
+Quaternion_conj(Quaternion q)
+{
+    q[1] = -q[1];
+    q[2] = -q[2];
+    q[3] = -q[3];
+}
 
 // q = a
-void Quaternion_copy(Quaternion q, const Quaternion a);
+static inline void
+Quaternion_copy(Quaternion q, const Quaternion a)
+{
+    q[0] = a[0];
+    q[1] = a[1];
+    q[2] = a[2];
+    q[3] = a[3];
+}
 
 // q = (1,0,0,0)
-void Quaternion_identity(Quaternion q);
+static inline void
+Quaternion_identity(Quaternion q)
+{
+    q[0] = 1.;
+    q[1] = 0.;
+    q[2] = 0.;
+    q[3] = 0.;
+}
 
 // q = 1/q = q*/|q|^2
 void Quaternion_inv(Quaternion q);
 
 // q = a * b
 void Quaternion_mul(Quaternion q, const Quaternion a, const Quaternion b);
+
+// q = {w,x,y,z}
+static inline void
+Quaternion_new(Quaternion q, double w, double x, double y, double z)
+{
+    q[0] = w;
+    q[1] = x;
+    q[2] = y;
+    q[3] = z;
+}
 
 // |q|
 double Quaternion_norm(const Quaternion q);
@@ -44,10 +79,24 @@ void Quaternion_r2_mul(double angle, Quaternion q);
 void Quaternion_r3_mul(double angle, Quaternion q);
 
 // q = q * scale
-void Quaternion_scale(Quaternion q, double scale);
+static inline void
+Quaternion_scale(Quaternion q, double scale)
+{
+    q[0] *= scale;
+    q[1] *= scale;
+    q[2] *= scale;
+    q[3] *= scale;
+}
 
 // q = a - b
-void Quaternion_sub(Quaternion q, const Quaternion a, const Quaternion b);
+static inline void
+Quaternion_sub(Quaternion q, const Quaternion a, const Quaternion b)
+{
+    q[0] = a[0] - b[0];
+    q[1] = a[1] - b[1];
+    q[2] = a[2] - b[2];
+    q[3] = a[3] - b[3];
+}
 
 void Quaternion_to_matrix(const Quaternion q, double mat[3][3]);
 

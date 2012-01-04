@@ -5,41 +5,6 @@
 #include "actpol/quaternion.h"
 
 void
-Quaternion_add(Quaternion q, const Quaternion a, const Quaternion b)
-{
-    q[0] = a[0] + b[0];
-    q[1] = a[1] + b[1];
-    q[2] = a[2] + b[2];
-    q[3] = a[3] + b[3];
-}
-
-void
-Quaternion_conj(Quaternion q)
-{
-    q[1] = -q[1];
-    q[2] = -q[2];
-    q[3] = -q[3];
-}
-
-void
-Quaternion_copy(Quaternion q, const Quaternion a)
-{
-    q[0] = a[0];
-    q[1] = a[1];
-    q[2] = a[2];
-    q[3] = a[3];
-}
-
-void
-Quaternion_identity(Quaternion q)
-{
-    q[0] = 1.;
-    q[1] = 0.;
-    q[2] = 0.;
-    q[3] = 0.;
-}
-
-void
 Quaternion_inv(Quaternion q)
 {
     double norm = Quaternion_norm(q);
@@ -59,37 +24,10 @@ Quaternion_mul(Quaternion q, const Quaternion a, const Quaternion b)
     q[3] = a[0]*b[3] + a[1]*b[2] - a[2]*b[1] + a[3]*b[0];
 }
 
-void
-Quaternion_new(Quaternion q, double w, double x, double y, double z)
-{
-    q[0] = w;
-    q[1] = x;
-    q[2] = y;
-    q[3] = z;
-}
-
 double
 Quaternion_norm(const Quaternion q)
 {
     return sqrt(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3]);
-}
-
-void
-Quaternion_scale(Quaternion q, double scale)
-{
-    q[0] *= scale;
-    q[1] *= scale;
-    q[2] *= scale;
-    q[3] *= scale;
-}
-
-void
-Quaternion_sub(Quaternion q, const Quaternion a, const Quaternion b)
-{
-    q[0] = a[0] - b[0];
-    q[1] = a[1] - b[1];
-    q[2] = a[2] - b[2];
-    q[3] = a[3] - b[3];
 }
 
 void
@@ -222,3 +160,4 @@ QuaternionSlerp_interpolate(const QuaternionSlerp *slerp, double t, Quaternion q
     for (int i = 0; i != 4; ++i)
         q[i] = s0*slerp->q0[i] + s1*slerp->q1[i];
 }
+
