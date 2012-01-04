@@ -95,7 +95,6 @@ ACTpolArrayCoords_update_refraction(ACTpolArrayCoords *coords, const ACTpolState
 
 int
 ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state)
-    __attribute__((hot)) // tells gcc this is a hotspot
 {
     const ACTpolArray *array = coords->array;
     double mat[3][3];
