@@ -7,13 +7,19 @@
 #pragma once
 
 #include "state.h"
+#include "quaternion.h"
 
 typedef struct
 {
+    Quaternion qfocalplane;
     double alt_offset;
     double az_offset;
 }
 ACTpolFeedhorn;
+
+void
+ACTpolFeedhorn_init(ACTpolFeedhorn *feedhorn, double focalplane_x,
+    double focalplane_y, double pol_angle);
 
 typedef struct
 {

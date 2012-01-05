@@ -7,6 +7,15 @@
 #include "actpol/state.h"
 #include "actpol/vec3.h"
 
+void
+ACTpolFeedhorn_init(ACTpolFeedhorn *feedhorn, double focalplane_x,
+    double focalplane_y, double pol_angle)
+{
+    Quaternion_r3(feedhorn->qfocalplane, -pol_angle);
+    Quaternion_r2_mul(focalplane_x, feedhorn->qfocalplane);
+    Quaternion_r1_mul(-focalplane_y, feedhorn->qfocalplane);
+}
+
 ACTpolArray *
 ACTpolArray_alloc(int nhorns)
 {
