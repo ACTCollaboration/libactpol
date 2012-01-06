@@ -59,7 +59,7 @@ void
 ACTpolState_update_unixtime_fast(ACTpolState *state, double unixtime);
 
 void
-ACTpolState_update_boresight(ACTpolState *state, double encoding_alt, double encoding_az);
+ACTpolState_update_boresight(ACTpolState *state, double boresight_alt, double boresight_az);
 
 #ifdef __cplusplus
 }

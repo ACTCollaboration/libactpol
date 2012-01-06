@@ -62,10 +62,10 @@ actpol_rotate_focalplane_to_NWU(double boresight_alt, double boresight_az, Quate
 }
 
 void
-ACTpolState_update_boresight(ACTpolState *state, double encoding_alt, double encoding_az)
+ACTpolState_update_boresight(ACTpolState *state, double boresight_alt, double boresight_az)
 {
-    state->boresight_alt = encoding_alt;
-    state->boresight_az = encoding_az;
+    state->boresight_alt = boresight_alt;
+    state->boresight_az = boresight_az;
 
     Quaternion_identity(state->focalplane_to_NWU);
     actpol_rotate_focalplane_to_NWU(state->boresight_alt, state->boresight_az,
