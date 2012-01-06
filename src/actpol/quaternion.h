@@ -100,6 +100,8 @@ Quaternion_sub(Quaternion q, const Quaternion a, const Quaternion b)
 
 void Quaternion_to_matrix(const Quaternion q, double mat[3][3]);
 
+void Quaternion_unit(Quaternion q);
+
 //
 
 typedef struct

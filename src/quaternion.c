@@ -143,6 +143,13 @@ Quaternion_to_matrix(const Quaternion q, double mat[3][3])
 }
 
 void
+Quaternion_unit(Quaternion q)
+{
+    double invnorm = 1./Quaternion_norm(q);
+    Quaternion_scale(q, invnorm);
+}
+
+void
 QuaternionSlerp_init(QuaternionSlerp *slerp, const Quaternion a, const Quaternion b)
 {
     double cos_alpha = a[0]*b[0] + a[1]*b[1] + a[2]*b[2] + a[3]*b[3];
