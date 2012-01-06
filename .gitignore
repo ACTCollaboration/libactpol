@@ -16,6 +16,7 @@
 
 # automake
 Makefile.in
+/ar-lib
 
 # autoconf
 /autom4te.cache
