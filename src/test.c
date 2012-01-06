@@ -5,11 +5,13 @@
 #include <stdlib.h>
 
 #include <slalib.h>
+#include <sofa.h>
 #include <wcslib/wcslib.h>
 
 #include "actpol/actpol.h"
 #include "actpol/oldact.h"
 #include "actpol/vec3.h"
+#include "iers_bulletin_a.h"
 
 #define TEST_FILENAME "/tmp/libactpol_test_map.fits";
 
@@ -161,6 +163,63 @@ check_horizon_to_itrs(double alt, double az)
 }
 
 void
+check_itrs_to_gcrs(double unixtime)
+{
+    double djmjd0, date, time, utc, dat, tai, tt, tut, ut1;
+    double X, Y, s, theta, xp, yp, dut1;
+
+    double jd_utc[2];
+    jd_utc[0] = 2440587.5;
+    jd_utc[1] = secs2days(unixtime);
+    double mjd_utc = jd2mjd(jd_utc[0]) + jd_utc[1];
+    int stat = get_iers_bulletin_a(mjd_utc, &dut1, &xp, &yp);
+    assert(stat == 0);
+    xp = arcsec2rad(xp);
+    yp = arcsec2rad(yp);
+
+    djmjd0 = 2400000.5;
+    time = modf(mjd_utc, &date);
+    //iauCal2jd(2007, 4, 5, &djmjd0, &date);
+    //time = 12./24.;
+    utc = date + time;
+    //iauDat(2007, 4, 5, time, &dat);
+    dat = 34.;
+    tai = utc + dat/86400.;
+    tt = tai + 32.184/86400.;
+    tut = time + dut1/86400.;
+    ut1 = date + tut;
+
+    iauXy06(djmjd0, tt, &X, &Y);
+    s = iauS06(djmjd0, tt, X, Y);
+    theta = iauEra00(djmjd0+date, tut);
+
+    double rc2i[3][3], rc2ti[3][3], rpom[3][3], rc2it[3][3];
+    iauC2ixys(X, Y, s, rc2i);
+    iauCr(rc2i, rc2ti);
+    iauRz(theta, rc2ti);
+    iauPom00(xp, yp, 0., rpom);
+    iauRxr(rpom, rc2ti, rc2it);
+    //print_mat(rc2it);
+
+    // quaternion code
+    Quaternion q;
+    Quaternion_identity(q);
+    actpol_rotate_ITRS_to_GCRS(unixtime, q);
+    double mat[3][3];
+    //Quaternion_unit(q);
+    Quaternion_to_matrix(q, mat);
+    //print_mat(mat);
+
+    for (int i = 0; i != 3; ++i)
+        for (int j = 0; j != 3; ++j)
+        {
+            double x= fabs(rc2it[i][j]-mat[j][i]);
+            //printf("%g\n", x);
+            assert(x < 2e-11); // not sure why this is so large...
+        }
+}
+
+void
 ACTSite_init(ACTSite *s)
 {
     s->latitude = ACTPOL_LATITUDE;
@@ -183,6 +242,7 @@ test_astro(void)
 
     check_focalplane_to_NWU(alt, az);
     check_horizon_to_itrs(alt, az);
+    check_itrs_to_gcrs(unixtime);
 
     double ref = actpol_refraction(&weather, freq_GHz, alt);
     //altaz2itrs(alt-ref, az, r);
