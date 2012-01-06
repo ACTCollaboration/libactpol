@@ -16,12 +16,6 @@
 // Julian date for unixtime = 0
 #define UNIX_JD_EPOCH 2440587.5
 
-#ifndef M_PI_2
-#define M_PI_2     1.57079632679489661923  /* pi/2 */
-#endif
-
-static double inline mjd(double jd) { return jd - 2400000.5; }
-
 void
 actpol_diurnal_aberration(const double r[3], Quaternion q)
 {
@@ -54,7 +48,7 @@ actpol_rotate_ITRS_to_GCRS(double unixtime, Quaternion q)
     jd_utc[0] = UNIX_JD_EPOCH;
     jd_utc[1] = secs2days(unixtime);
 
-    double mjd_utc = mjd(jd_utc[0]) + jd_utc[1];
+    double mjd_utc = jd2mjd(jd_utc[0]) + jd_utc[1];
     stat = get_iers_bulletin_a(mjd_utc, &ut1_minus_utc, &xp, &yp);
     assert(stat == 0);
 
