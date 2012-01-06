@@ -49,7 +49,6 @@ typedef struct
 {
     const ACTpolArray *array;
     double *ref;
-    double *az, *alt;
     double *ra, *dec;
     double *cos2alpha, *sin2alpha;
 }

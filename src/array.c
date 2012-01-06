@@ -24,6 +24,7 @@ ACTpolArray_alloc(int nhorns)
     assert(array);
     array->nhorns = nhorns;
     array->horn = (ACTpolFeedhorn *)malloc(nhorns*sizeof(ACTpolFeedhorn));
+    assert(array->horn);
     return array;
 }
 
@@ -68,8 +69,6 @@ ACTpolArrayCoords_alloc(const ACTpolArray *array)
     ACTpolArrayCoords *coords = (ACTpolArrayCoords *)malloc(sizeof(ACTpolArrayCoords));
     coords->array = array;
     coords->ref = (double *)malloc(sizeof(double) * array->nhorns);
-    coords->az = (double *)malloc(sizeof(double) * array->nhorns);
-    coords->alt = (double *)malloc(sizeof(double) * array->nhorns);
     coords->ra = (double *)malloc(sizeof(double) * array->nhorns);
     coords->dec = (double *)malloc(sizeof(double) * array->nhorns);
     coords->sin2alpha = (double *)malloc(sizeof(double) * array->nhorns);
@@ -84,8 +83,6 @@ ACTpolArrayCoords_free(ACTpolArrayCoords *coords)
     free(coords->sin2alpha);
     free(coords->dec);
     free(coords->ra);
-    free(coords->alt);
-    free(coords->az);
     free(coords->ref);
     free(coords);
 }
@@ -115,9 +112,6 @@ ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state)
         double alt, az;
         ACTpolArray_horn_alt_az(array, i, state, &alt, &az);
         alt -= coords->ref[i]; // correct for refraction
-
-        coords->alt[i] = alt;
-        coords->az[i] = az;
 
         // rotate horizon -> celestial
         double r_h[3], r_c[3];
