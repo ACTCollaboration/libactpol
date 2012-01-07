@@ -22,7 +22,7 @@ matrix_times_vec3(double a[3], double m[3][3], const double v[3])
 }
 
 static inline void
-vec3_cross_product(const double a[3], const double b[3], double axb[3])
+vec3_cross_product(double axb[3], const double a[3], const double b[3])
 {
     axb[0] = a[1]*b[2] - a[2]*b[1];
     axb[1] = a[2]*b[0] - a[0]*b[2];

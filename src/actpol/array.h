@@ -50,7 +50,7 @@ typedef struct
     const ACTpolArray *array;
     double *ref;
     double *ra, *dec;
-    double *cos2alpha, *sin2alpha;
+    double *cos2gamma, *sin2gamma;
 }
 ACTpolArrayCoords;
 

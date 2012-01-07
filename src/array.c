@@ -71,16 +71,16 @@ ACTpolArrayCoords_alloc(const ACTpolArray *array)
     coords->ref = (double *)malloc(sizeof(double) * array->nhorns);
     coords->ra = (double *)malloc(sizeof(double) * array->nhorns);
     coords->dec = (double *)malloc(sizeof(double) * array->nhorns);
-    coords->sin2alpha = (double *)malloc(sizeof(double) * array->nhorns);
-    coords->cos2alpha = (double *)malloc(sizeof(double) * array->nhorns);
+    coords->sin2gamma = (double *)malloc(sizeof(double) * array->nhorns);
+    coords->cos2gamma = (double *)malloc(sizeof(double) * array->nhorns);
     return coords;
 }
 
 void
 ACTpolArrayCoords_free(ACTpolArrayCoords *coords)
 {
-    free(coords->cos2alpha);
-    free(coords->sin2alpha);
+    free(coords->cos2gamma);
+    free(coords->sin2gamma);
     free(coords->dec);
     free(coords->ra);
     free(coords->ref);
@@ -113,10 +113,30 @@ ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state)
         Quaternion_mul(q, focalplane_to_GCRS, array->horn[i].focalplane_q);
 
         double mat[3][3];
+        Quaternion_conj(q);
         Quaternion_to_matrix(q, mat);
-        const double r[3] = {mat[0][2], mat[1][2], mat[2][2]};
+        double *p1 = mat[0];
+        double *p2 = mat[1];
+        double *r = mat[2];
 
+        // XXX:speed this up
         actpol_vec2ang(r, coords->ra+i, coords->dec+i);
+
+        // w = r x z
+        //double s = 1./hypot(r[0], r[1]);
+        //double w[3] = {r[1]*s, -r[0]*s, 0.};
+        double w[3], z[3] = {0, 0, 1};
+        vec3_cross_product(w, r, z);
+        vec3_unit(w);
+
+        // n = w x r
+        double n[3];
+        vec3_cross_product(n, w, r);
+
+        double sin_g = vec3_dot_product(p1, w);
+        double cos_g = vec3_dot_product(p1, n);
+        coords->sin2gamma[i] = 2*sin_g*cos_g;
+        coords->cos2gamma[i] = 2*cos_g*cos_g - 1;
     }
 
     return 0;
