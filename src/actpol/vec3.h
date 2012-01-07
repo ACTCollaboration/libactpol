@@ -29,6 +29,21 @@ vec3_cross_product(const double a[3], const double b[3], double axb[3])
     axb[2] = a[0]*b[1] - a[1]*b[0];
 }
 
+static inline double
+vec3_dot_product(const double a[3], const double b[3])
+{
+    return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+}
+
+static inline void
+vec3_unit(double a[3])
+{
+    double invnorm = 1./vec3_norm(a);
+    a[0] *= invnorm;
+    a[1] *= invnorm;
+    a[2] *= invnorm;
+}
+
 #ifdef __cplusplus
 }
 #endif
