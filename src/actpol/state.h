@@ -20,6 +20,9 @@ typedef struct
 }
 ACTpolScan;
 
+void
+ACTpolScan_init(ACTpolScan *scan, double mean_alt, double min_az, double max_az);
+
 typedef struct
 {
     double temperature_C;
@@ -42,7 +45,6 @@ typedef struct
 {
     double boresight_alt;
     double boresight_az;
-    ACTpolScan scan;
     double unixtime;
     ACTpolWeather weather;
 
@@ -63,9 +65,6 @@ ACTpolState_free(ACTpolState *state);
 
 void
 ACTpolState_init(ACTpolState *state);
-
-void
-ACTpolState_init_scan(ACTpolState *state, double scan_mean_alt, double scan_min_az, double scan_max_az);
 
 void
 ACTpolState_update(ACTpolState *state, double unixtime, double boresight_alt, double boresight_az);
