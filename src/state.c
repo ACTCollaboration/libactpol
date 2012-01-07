@@ -95,3 +95,11 @@ ACTpolState_update_unixtime_fast(ACTpolState *state, double unixtime)
     }
 }
 
+void
+ACTpolState_update(ACTpolState *state, double unixtime,
+    double boresight_alt, double boresight_az)
+{
+    ACTpolState_update_unixtime_fast(state, unixtime);
+    ACTpolState_update_boresight(state, boresight_alt, boresight_az);
+}
+

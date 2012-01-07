@@ -53,6 +53,9 @@ void
 ACTpolState_free(ACTpolState *state);
 
 void
+ACTpolState_update(ACTpolState *state, double unixtime, double boresight_alt, double boresight_az);
+
+void
 ACTpolState_update_unixtime(ACTpolState *state, double unixtime);
 
 void
