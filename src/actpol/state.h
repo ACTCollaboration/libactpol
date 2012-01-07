@@ -14,6 +14,14 @@ extern "C" {
 
 typedef struct
 {
+    double mean_alt;
+    double min_az;
+    double max_az;
+}
+ACTpolScan;
+
+typedef struct
+{
     double temperature_C;
     double pressure_mbar;
     double relative_humidity; // percentage
@@ -34,6 +42,7 @@ typedef struct
 {
     double boresight_alt;
     double boresight_az;
+    ACTpolScan scan;
     double unixtime;
     ACTpolWeather weather;
 
@@ -51,6 +60,12 @@ ACTpolState_alloc(void);
 
 void
 ACTpolState_free(ACTpolState *state);
+
+void
+ACTpolState_init(ACTpolState *state);
+
+void
+ACTpolState_init_scan(ACTpolState *state, double scan_mean_alt, double scan_min_az, double scan_max_az);
 
 void
 ACTpolState_update(ACTpolState *state, double unixtime, double boresight_alt, double boresight_az);

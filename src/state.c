@@ -41,9 +41,6 @@ ACTpolState_alloc(void)
 {
     ACTpolState *state = (ACTpolState *)malloc(sizeof(ACTpolState));
     assert(state);
-    ACTpolWeather_default(&state->weather);
-    state->slerp_unixtime0 = 0.;
-    state->slerp_length = 660.; // 11 minutes
     return state;
 }
 
@@ -51,6 +48,22 @@ void
 ACTpolState_free(ACTpolState *state)
 {
     free(state);
+}
+
+void
+ACTpolState_init(ACTpolState *state)
+{
+    ACTpolWeather_default(&state->weather);
+    state->slerp_unixtime0 = 0.;
+    state->slerp_length = 660.; // 11 minutes
+}
+
+void
+ACTpolState_init_scan(ACTpolState *state, double scan_mean_alt, double scan_min_az, double scan_max_az)
+{
+    state->scan.mean_alt = scan_mean_alt;
+    state->scan.min_az = scan_min_az;
+    state->scan.max_az = scan_max_az;
 }
 
 void
