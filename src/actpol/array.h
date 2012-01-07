@@ -44,6 +44,7 @@ typedef struct
 {
     const ACTpolArray *array;
     double *ref;
+    double mean_ref;
     double *ra, *dec;
     double *cos2gamma, *sin2gamma;
 }
@@ -53,7 +54,10 @@ ACTpolArrayCoords *
 ACTpolArrayCoords_alloc(const ACTpolArray *array);
 
 void
-ACTpolArrayCoords_free(ACTpolArrayCoords *array);
+ACTpolArrayCoords_free(ACTpolArrayCoords *coords);
+
+void
+ACTpolArrayCoords_init(ACTpolArrayCoords *coords);
 
 // refraction correction only needs to be calculated once per scan,
 // or when the weather changes.

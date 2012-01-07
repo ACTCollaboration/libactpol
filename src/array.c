@@ -88,15 +88,24 @@ ACTpolArrayCoords_free(ACTpolArrayCoords *coords)
 }
 
 void
+ACTpolArrayCoords_init(ACTpolArrayCoords *coords)
+{
+    coords->mean_ref = 0.;
+}
+
+void
 ACTpolArrayCoords_update_refraction(ACTpolArrayCoords *coords, const ACTpolState *state)
 {
     const ACTpolArray *array = coords->array;
+    coords->mean_ref = 0.;
     for (int i = 0; i != coords->array->nhorns; ++i)
     {
         double alt, az;
         ACTpolArray_horn_alt_az(coords->array, i, state, &alt, &az);
         coords->ref[i] = actpol_refraction(&state->weather, array->freq_GHz, alt);
+        coords->mean_ref += coords->ref[i];
     }
+    coords->mean_ref /= coords->array->nhorns;
 }
 
 int
