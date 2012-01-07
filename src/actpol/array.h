@@ -12,8 +12,6 @@
 typedef struct
 {
     Quaternion focalplane_q;
-    double alt_offset;
-    double az_offset;
 }
 ACTpolFeedhorn;
 
@@ -23,11 +21,9 @@ ACTpolFeedhorn_init(ACTpolFeedhorn *feedhorn, double focalplane_x,
 
 typedef struct
 {
-    double freq_GHz;
-    double boresight_offset_alt;
-    double boresight_offset_az;
-    int nhorns;
     ACTpolFeedhorn *horn;
+    int nhorns;
+    double freq_GHz;
 }
 ACTpolArray;
 
@@ -37,11 +33,10 @@ ACTpolArray_alloc(int nhorns);
 void
 ACTpolArray_free(ACTpolArray *array);
 
-int
-ACTpolArray_center_alt_az(const ACTpolArray *array,
-        const ACTpolState *state, double *alt, double *az);
+void
+ACTpolArray_init(ACTpolArray *array, double freq_GHz);
 
-int
+void
 ACTpolArray_horn_alt_az(const ACTpolArray *array, int index,
         const ACTpolState *state, double *alt, double *az);
 
