@@ -11,9 +11,9 @@ void
 ACTpolFeedhorn_init(ACTpolFeedhorn *feedhorn, double focalplane_x,
     double focalplane_y, double pol_angle)
 {
-    Quaternion_r3(feedhorn->qfocalplane, -pol_angle);
-    Quaternion_r2_mul(focalplane_x, feedhorn->qfocalplane);
-    Quaternion_r1_mul(-focalplane_y, feedhorn->qfocalplane);
+    Quaternion_r3(feedhorn->focalplane_q, -pol_angle);
+    Quaternion_r2_mul(focalplane_x, feedhorn->focalplane_q);
+    Quaternion_r1_mul(-focalplane_y, feedhorn->focalplane_q);
 }
 
 ACTpolArray *
@@ -103,34 +103,20 @@ int
 ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state)
 {
     const ACTpolArray *array = coords->array;
-    double mat[3][3];
-    Quaternion_to_matrix(state->q, mat);
+    Quaternion focalplane_to_GCRS;
+    Quaternion_mul(focalplane_to_GCRS, state->NWU_to_GCRS_q, state->focalplane_to_NWU_q);
 
     #pragma omp parallel for
     for (int i = 0; i != array->nhorns; ++i)
     {
-        double alt, az;
-        ACTpolArray_horn_alt_az(array, i, state, &alt, &az);
-        alt -= coords->ref[i]; // correct for refraction
+        Quaternion q;
+        Quaternion_mul(q, focalplane_to_GCRS, array->horn[i].focalplane_q);
 
-        // rotate horizon -> celestial
-        double r_h[3], r_c[3];
+        double mat[3][3];
+        Quaternion_to_matrix(q, mat);
+        const double r[3] = {mat[0][2], mat[1][2], mat[2][2]};
 
-        actpol_ang2vec(-az, alt, r_h);
-        /*
-        double cos_d = cos(alt);
-        r_h[0] = cos_d*cos(-az);
-        r_h[1] = cos_d*sin(-az);
-        r_h[2] = sin(alt);
-        */
-
-        matrix_times_vec3(r_c, mat, r_h);
-
-        actpol_vec2ang(r_c, coords->ra+i, coords->dec+i);
-        /*
-        coords->ra[i] = atan2(r_c[1], r_c[0]);
-        coords->dec[i] = atan2(r_c[2], hypot(r_c[0],r_c[1]));
-        */
+        actpol_vec2ang(r, coords->ra+i, coords->dec+i);
     }
 
     return 0;

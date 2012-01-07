@@ -67,16 +67,16 @@ ACTpolState_update_boresight(ACTpolState *state, double boresight_alt, double bo
     state->boresight_alt = boresight_alt;
     state->boresight_az = boresight_az;
 
-    Quaternion_identity(state->focalplane_to_NWU);
+    Quaternion_identity(state->focalplane_to_NWU_q);
     actpol_rotate_focalplane_to_NWU(state->boresight_alt, state->boresight_az,
-        state->focalplane_to_NWU);
+        state->focalplane_to_NWU_q);
 }
 
 void
 ACTpolState_update_unixtime(ACTpolState *state, double unixtime)
 {
     state->unixtime = unixtime;
-    actpol_NWU_to_GCRS_rotation(unixtime, state->q);
+    actpol_NWU_to_GCRS_rotation(unixtime, state->NWU_to_GCRS_q);
 }
 
 void
@@ -85,13 +85,13 @@ ACTpolState_update_unixtime_fast(ACTpolState *state, double unixtime)
     state->unixtime = unixtime;
     double t = (unixtime - state->slerp_unixtime0)/state->slerp_length;
     if (0. <= t && t <= 1.) {
-        QuaternionSlerp_interpolate(&state->slerp, t, state->q);
+        QuaternionSlerp_interpolate(&state->slerp, t, state->NWU_to_GCRS_q);
     } else {
         Quaternion q1;
         state->slerp_unixtime0 = unixtime;
-        actpol_NWU_to_GCRS_rotation(unixtime, state->q);
+        actpol_NWU_to_GCRS_rotation(unixtime, state->NWU_to_GCRS_q);
         actpol_NWU_to_GCRS_rotation(unixtime + state->slerp_length, q1);
-        QuaternionSlerp_init(&state->slerp, state->q, q1);
+        QuaternionSlerp_init(&state->slerp, state->NWU_to_GCRS_q, q1);
     }
 }
 

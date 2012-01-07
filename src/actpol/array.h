@@ -11,7 +11,7 @@
 
 typedef struct
 {
-    Quaternion qfocalplane;
+    Quaternion focalplane_q;
     double alt_offset;
     double az_offset;
 }

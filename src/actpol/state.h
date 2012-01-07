@@ -37,12 +37,12 @@ typedef struct
     double unixtime;
     ACTpolWeather weather;
 
-    Quaternion q;
+    Quaternion NWU_to_GCRS_q;
     QuaternionSlerp slerp;
     double slerp_unixtime0;
     double slerp_length;
 
-    Quaternion focalplane_to_NWU;
+    Quaternion focalplane_to_NWU_q;
 }
 ACTpolState;
 
