@@ -15,15 +15,6 @@ Quaternion_inv(Quaternion q)
     q[3] = -q[3]/norm2;
 }
 
-void
-Quaternion_mul(Quaternion q, const Quaternion a, const Quaternion b)
-{
-    q[0] = a[0]*b[0] - a[1]*b[1] - a[2]*b[2] - a[3]*b[3];
-    q[1] = a[0]*b[1] + a[1]*b[0] + a[2]*b[3] - a[3]*b[2];
-    q[2] = a[0]*b[2] - a[1]*b[3] + a[2]*b[0] + a[3]*b[1];
-    q[3] = a[0]*b[3] + a[1]*b[2] - a[2]*b[1] + a[3]*b[0];
-}
-
 double
 Quaternion_norm(const Quaternion q)
 {
