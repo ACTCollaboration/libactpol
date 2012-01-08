@@ -13,9 +13,6 @@
 
 #include "iers_bulletin_a.h"
 
-// Julian date for unixtime = 0
-#define UNIX_JD_EPOCH 2440587.5
-
 void
 actpol_aberration(const double u[3], const double beta[3], Quaternion q)
 {
