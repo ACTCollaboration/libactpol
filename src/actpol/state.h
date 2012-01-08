@@ -64,6 +64,9 @@ void
 ACTpolState_init(ACTpolState *state);
 
 void
+ACTpolState_tt_jd(const ACTpolState *state, double tt_jd[2]);
+
+void
 ACTpolState_update(ACTpolState *state, double unixtime, double boresight_alt, double boresight_az);
 
 void
