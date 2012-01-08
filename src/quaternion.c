@@ -7,8 +7,7 @@
 void
 Quaternion_inv(Quaternion q)
 {
-    double norm = Quaternion_norm(q);
-    double norm2 = norm*norm;
+    double norm2 = Quaternion_norm2(q);
     q[0] = q[0]/norm2;
     q[1] = -q[1]/norm2;
     q[2] = -q[2]/norm2;
@@ -118,8 +117,7 @@ Quaternion_to_matrix(const Quaternion q, double mat[3][3])
 {
     Quaternion u;
     Quaternion_copy(u, q);
-    double norm = Quaternion_norm(u);
-    Quaternion_scale(u, 1./norm);
+    Quaternion_unit(u);
 
     double a2 = u[0]*u[0], b2 = u[1]*u[1], c2 = u[2]*u[2], d2 = u[3]*u[3];
     mat[0][0] = a2 + b2 - c2 - d2;
@@ -136,7 +134,8 @@ Quaternion_to_matrix(const Quaternion q, double mat[3][3])
 void
 Quaternion_unit(Quaternion q)
 {
-    double invnorm = 1./Quaternion_norm(q);
+    double norm2 = Quaternion_norm2(q);
+    double invnorm = invsqrt(norm2);
     Quaternion_scale(q, invnorm);
 }
 

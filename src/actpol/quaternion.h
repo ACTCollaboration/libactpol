@@ -72,6 +72,13 @@ Quaternion_new(Quaternion q, double w, double x, double y, double z)
 // |q|
 double Quaternion_norm(const Quaternion q);
 
+// |q|^2
+static inline double
+Quaternion_norm2(const Quaternion q)
+{
+    return q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3];
+}
+
 // q = (rotate by angle around arbitrary vector v)
 void Quaternion_rot(Quaternion q, double angle, const double v[3]);
 
