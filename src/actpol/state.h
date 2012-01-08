@@ -15,13 +15,13 @@ extern "C" {
 typedef struct
 {
     double mean_alt;
-    double min_az;
-    double max_az;
+    double mean_az;
+    double mean_throw;
 }
 ACTpolScan;
 
 void
-ACTpolScan_init(ACTpolScan *scan, double mean_alt, double min_az, double max_az);
+ACTpolScan_init(ACTpolScan *scan, double mean_alt, double mean_az, double mean_throw);
 
 typedef struct
 {
@@ -46,7 +46,6 @@ typedef struct
     double boresight_alt;
     double boresight_az;
     double unixtime;
-    ACTpolWeather weather;
 
     Quaternion NWU_to_GCRS_q;
     QuaternionSlerp slerp;

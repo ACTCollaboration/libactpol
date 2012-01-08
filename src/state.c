@@ -10,11 +10,11 @@
 #include "actpol/state.h"
 
 void
-ACTpolScan_init(ACTpolScan *scan, double mean_alt, double min_az, double max_az)
+ACTpolScan_init(ACTpolScan *scan, double mean_alt, double mean_az, double mean_throw)
 {
     scan->mean_alt = mean_alt;
-    scan->min_az = min_az;
-    scan->max_az = max_az;
+    scan->mean_az = mean_az;
+    scan->mean_throw = mean_throw;
 }
 
 void
@@ -61,7 +61,6 @@ ACTpolState_free(ACTpolState *state)
 void
 ACTpolState_init(ACTpolState *state)
 {
-    ACTpolWeather_default(&state->weather);
     state->slerp_unixtime0 = 0.;
     state->slerp_length = 660.; // 11 minutes
 }

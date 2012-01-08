@@ -1,5 +1,6 @@
 
 #include <assert.h>
+#include <math.h>
 #include <stdlib.h>
 
 #include "actpol/array.h"
@@ -90,19 +91,30 @@ ACTpolArrayCoords_free(ACTpolArrayCoords *coords)
 void
 ACTpolArrayCoords_init(ACTpolArrayCoords *coords)
 {
-    coords->mean_ref = 0.;
+    coords->mean_ref = arcsec2rad(30.);
 }
 
 void
-ACTpolArrayCoords_update_refraction(ACTpolArrayCoords *coords, const ACTpolState *state)
+ACTpolArrayCoords_update_refraction(ACTpolArrayCoords *coords,
+    const ACTpolScan *scan, const ACTpolWeather *weather)
 {
     const ACTpolArray *array = coords->array;
+
+    Quaternion focalplane_to_NWU_q;
+    Quaternion_identity(focalplane_to_NWU_q);
+    actpol_rotate_focalplane_to_NWU(scan->mean_alt, scan->mean_az, focalplane_to_NWU_q);
+
     coords->mean_ref = 0.;
     for (int i = 0; i != coords->array->nhorns; ++i)
     {
-        double alt, az;
-        ACTpolArray_horn_alt_az(coords->array, i, state, &alt, &az);
-        coords->ref[i] = actpol_refraction(&state->weather, array->freq_GHz, alt);
+        Quaternion q;
+        Quaternion_mul(q, focalplane_to_NWU_q, array->horn[i].focalplane_q);
+
+        double mat[3][3];
+        Quaternion_to_matrix(q, mat);
+        double alt = asin(mat[2][2]);
+
+        coords->ref[i] = actpol_refraction(weather, array->freq_GHz, alt);
         coords->mean_ref += coords->ref[i];
     }
     coords->mean_ref /= coords->array->nhorns;

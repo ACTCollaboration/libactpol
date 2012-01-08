@@ -63,7 +63,7 @@ ACTpolArrayCoords_init(ACTpolArrayCoords *coords);
 // or when the weather changes.
 void
 ACTpolArrayCoords_update_refraction(ACTpolArrayCoords *coords,
-        const ACTpolState *state);
+    const ACTpolScan *scan, const ACTpolWeather *weather);
 
 int
 ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state);
