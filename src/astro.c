@@ -17,6 +17,15 @@
 #define UNIX_JD_EPOCH 2440587.5
 
 void
+actpol_aberration(const double u[3], const double beta[3], Quaternion q)
+{
+    double n[3];
+    vec3_cross_product(n, u, beta);
+    double angle = vec3_norm(n);
+    Quaternion_rot(q, -angle, n);
+}
+
+void
 actpol_diurnal_aberration(const double r[3], Quaternion q)
 {
     const double v = 0.295043*M_PI/(180.*3600.);
@@ -24,6 +33,17 @@ actpol_diurnal_aberration(const double r[3], Quaternion q)
     vec3_cross_product(n, r, east);
     double angle = v*vec3_norm(n)/vec3_norm(r);
     Quaternion_rot(q, -angle, n);
+}
+
+void
+actpol_annual_aberration(const double jd_tdb[2], const double r[3], Quaternion q)
+{
+    double pvb[2][3];
+    iauEpv00(jd_tdb[0], jd_tdb[1], pvb, pvb);
+    double beta[3];
+    for (int i = 0; i < 3; i++)
+        beta[i] = pvb[1][i]/SPEED_OF_LIGHT_AU_PER_D;
+    actpol_aberration(r, beta, q);
 }
 
 void
