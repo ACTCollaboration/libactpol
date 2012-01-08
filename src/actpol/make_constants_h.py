@@ -21,7 +21,8 @@ def main():
     latitude_deg = -22.9585
     longitude_east_deg = -67.7876
     elevation_m = 5188.0
-    speed_of_light = 299792458.
+    speed_of_light_m_per_s = 299792458.
+    speed_of_light_au_per_d = 173.1446327
 
     d2r = math.pi/180
     latitude = latitude_deg*d2r
@@ -31,7 +32,8 @@ def main():
         ("ACTPOL_LATITUDE_DEG", d(latitude_deg)),
         ("ACTPOL_LONGITUDE_EAST_DEG", d(longitude_east_deg)),
         ("ACTPOL_ELEVATION_METERS", d(elevation_m)),
-        ("SPEED_OF_LIGHT_M_PER_S", d(speed_of_light)),
+        ("SPEED_OF_LIGHT_M_PER_S", d(speed_of_light_m_per_s)),
+        ("SPEED_OF_LIGHT_AU_PER_D", d(speed_of_light_au_per_d)),
         ("ACTPOL_LATITUDE", d(latitude)),
         ("ACTPOL_LONGITUDE_EAST", d(longitude_east)),
         ("ACTPOL_SIN_LATITUDE", d(math.sin(latitude))),
