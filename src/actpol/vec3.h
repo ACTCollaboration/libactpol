@@ -35,10 +35,16 @@ vec3_dot_product(const double a[3], const double b[3])
     return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
 }
 
+static inline double
+vec3_invnorm(const double v[3])
+{
+    return invsqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
+}
+
 static inline void
 vec3_unit(double a[3])
 {
-    double invnorm = 1./vec3_norm(a);
+    double invnorm = vec3_invnorm(a);
     a[0] *= invnorm;
     a[1] *= invnorm;
     a[2] *= invnorm;
