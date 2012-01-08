@@ -8,6 +8,8 @@
 #include "actpol/state.h"
 #include "actpol/vec3.h"
 
+#include "debug.h"
+
 void
 ACTpolFeedhorn_init(ACTpolFeedhorn *feedhorn, double focalplane_x,
     double focalplane_y, double pol_angle)
@@ -93,9 +95,11 @@ ACTpolArrayCoords_update_refraction(ACTpolArrayCoords *coords,
         double alt = asin(mat[2][2]);
 
         coords->ref[i] = actpol_refraction(weather, array->freq_GHz, alt);
+        assert(coords->ref[i] > 0. && coords->ref[i] < 1e-3);
         coords->mean_ref += coords->ref[i];
     }
     coords->mean_ref /= coords->array->nhorns;
+    DEBUG("mean_ref = %g\"\n", rad2arcsec(coords->mean_ref));
 }
 
 int
