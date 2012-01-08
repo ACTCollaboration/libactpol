@@ -144,8 +144,6 @@ ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state)
         actpol_vec2ang(r, coords->ra+i, coords->dec+i);
 
         // w = r x z
-        //double s = 1./hypot(r[0], r[1]);
-        //double w[3] = {r[1]*s, -r[0]*s, 0.};
         double w[3], z[3] = {0, 0, 1};
         vec3_cross_product(w, r, z);
         vec3_unit(w);
