@@ -11,12 +11,20 @@
 #include "debug.h"
 
 void
+actpol_detector_to_focalplane_rotation(double focalplane_x, double focalplane_y,
+    double pol_angle, Quaternion q)
+{
+    Quaternion_r3(q, -pol_angle);
+    Quaternion_r2_mul(focalplane_x, q);
+    Quaternion_r1_mul(-focalplane_y, q);
+}
+
+void
 ACTpolFeedhorn_init(ACTpolFeedhorn *feedhorn, double focalplane_x,
     double focalplane_y, double pol_angle)
 {
-    Quaternion_r3(feedhorn->focalplane_q, -pol_angle);
-    Quaternion_r2_mul(focalplane_x, feedhorn->focalplane_q);
-    Quaternion_r1_mul(-focalplane_y, feedhorn->focalplane_q);
+    actpol_detector_to_focalplane_rotation(focalplane_x,
+        focalplane_y, pol_angle, feedhorn->focalplane_q);
 }
 
 ACTpolArray *
@@ -39,9 +47,11 @@ ACTpolArray_free(ACTpolArray *array)
 }
 
 void
-ACTpolArray_init(ACTpolArray *array, double freq_GHz)
+ACTpolArray_init(ACTpolArray *array, double freq_GHz, double focalplane_x, double focalplane_y)
 {
     array->freq_GHz = freq_GHz;
+    actpol_detector_to_focalplane_rotation(focalplane_x,
+        focalplane_y, 0., array->focalplane_q);
 }
 
 ACTpolArrayCoords *
@@ -102,11 +112,11 @@ ACTpolArrayCoords_update_refraction(ACTpolArrayCoords *coords,
     DEBUG("mean_ref = %g\"\n", rad2arcsec(coords->mean_ref));
 }
 
-int
-ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state)
+static void
+compute_mean_focalplane_to_BCRS(const ACTpolArrayCoords *coords,
+    const ACTpolState *state, Quaternion focalplane_to_BCRS)
 {
-    const ACTpolArray *array = coords->array;
-
+    // focalplane -> horizon
     Quaternion focalplane_to_NWU_q;
     Quaternion_identity(focalplane_to_NWU_q);
     actpol_rotate_focalplane_to_NWU(
@@ -114,14 +124,39 @@ ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state)
         state->boresight_az,
         focalplane_to_NWU_q);
 
+    // focalplane -> GCRS
     Quaternion focalplane_to_GCRS;
     Quaternion_mul(focalplane_to_GCRS, state->NWU_to_GCRS_q, focalplane_to_NWU_q);
+
+    // center of array in GCRS
+    Quaternion q;
+    Quaternion_mul(q, focalplane_to_GCRS, coords->array->focalplane_q);
+    double mat[3][3];
+    Quaternion_to_matrix(q, mat);
+    double r[3] = {mat[0][2], mat[1][2], mat[2][2]};
+
+    // annual aberration correction
+    Quaternion GCRS_to_BCRS;
+    double tt_jd[2];
+    ACTpolState_tt_jd(state, tt_jd);
+    actpol_annual_aberration(tt_jd, r, GCRS_to_BCRS);
+
+    Quaternion_mul(focalplane_to_BCRS, GCRS_to_BCRS, focalplane_to_GCRS);
+}
+
+int
+ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state)
+{
+    const ACTpolArray *array = coords->array;
+
+    Quaternion focalplane_to_BCRS;
+    compute_mean_focalplane_to_BCRS(coords, state, focalplane_to_BCRS);
 
     #pragma omp parallel for
     for (int i = 0; i != array->nhorns; ++i)
     {
         Quaternion q;
-        Quaternion_mul(q, focalplane_to_GCRS, array->horn[i].focalplane_q);
+        Quaternion_mul(q, focalplane_to_BCRS, array->horn[i].focalplane_q);
 
         double mat[3][3];
         Quaternion_conj(q); // transpose mat
@@ -155,15 +190,8 @@ ACTpolArrayCoords_update_fast(ACTpolArrayCoords *coords, const ACTpolState *stat
 {
     const ACTpolArray *array = coords->array;
 
-    Quaternion focalplane_to_NWU_q;
-    Quaternion_identity(focalplane_to_NWU_q);
-    actpol_rotate_focalplane_to_NWU(
-        state->boresight_alt - coords->mean_ref,
-        state->boresight_az,
-        focalplane_to_NWU_q);
-
-    Quaternion focalplane_to_GCRS;
-    Quaternion_mul(focalplane_to_GCRS, state->NWU_to_GCRS_q, focalplane_to_NWU_q);
+    Quaternion focalplane_to_BCRS;
+    compute_mean_focalplane_to_BCRS(coords, state, focalplane_to_BCRS);
 
     double asin_x0, asin_f0, asin_f1, asin_f2;
 
@@ -171,7 +199,7 @@ ACTpolArrayCoords_update_fast(ACTpolArrayCoords *coords, const ACTpolState *stat
     for (int i = 0; i != array->nhorns; ++i)
     {
         Quaternion q;
-        Quaternion_mul(q, focalplane_to_GCRS, array->horn[i].focalplane_q);
+        Quaternion_mul(q, focalplane_to_BCRS, array->horn[i].focalplane_q);
 
         double mat[3][3];
         Quaternion_conj(q);

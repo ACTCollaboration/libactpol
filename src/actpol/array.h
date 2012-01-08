@@ -24,6 +24,7 @@ typedef struct
     ACTpolFeedhorn *horn;
     int nhorns;
     double freq_GHz;
+    Quaternion focalplane_q;
 }
 ACTpolArray;
 
@@ -34,7 +35,7 @@ void
 ACTpolArray_free(ACTpolArray *array);
 
 void
-ACTpolArray_init(ACTpolArray *array, double freq_GHz);
+ACTpolArray_init(ACTpolArray *array, double freq_GHz, double focalplane_x, double focalplane_y);
 
 typedef struct
 {

@@ -244,6 +244,7 @@ test_astro(void)
     check_horizon_to_itrs(alt, az);
     check_itrs_to_gcrs(unixtime);
 
+    /*
     double ref = actpol_refraction(&weather, freq_GHz, alt);
     //altaz2itrs(alt-ref, az, r);
     actpol_ang2vec(-az, alt-ref, r);
@@ -254,12 +255,35 @@ test_astro(void)
     Quaternion_to_matrix(q, mat);
     matrix_times_vec3(rp, mat, r);
     actpol_vec2ang(rp, &ra, &dec);
-    printf("noltaq ra, dec = %g, %g\n", rad2deg(ra), rad2deg(dec));
+    printf("noltaq ra, dec = %.8g, %.8g\n", rad2deg(ra), rad2deg(dec));
+    */
+
+    ACTpolArray *array = ACTpolArray_alloc(1);
+    ACTpolArray_init(array, freq_GHz, 0., 0.);
+    ACTpolFeedhorn_init(array->horn, 0., 0., 0.);
+    ACTpolArrayCoords *coords = ACTpolArrayCoords_alloc(array);
+    ACTpolArrayCoords_init(coords);
+    ACTpolState *state = ACTpolState_alloc();
+    ACTpolState_init(state);
+    ACTpolState_update(state, unixtime, alt, az);
+    ACTpolScan scan;
+    ACTpolScan_init(&scan, alt, az, 5.);
+    ACTpolArrayCoords_update_refraction(coords, &scan, &weather);
+    ACTpolArrayCoords_update(coords, state);
+    printf("noltaq ra, dec = %.8g, %.8g\n", rad2deg(coords->ra[0]), rad2deg(coords->dec[0]));
 
     ACTSite site;
     ACTSite_init(&site);
     observed_altaz_to_mean_radec( &site, freq_GHz, 1, &unixtime, &alt, &az, &ra, &dec );
-    printf("slalib ra, dec = %g, %g\n", rad2deg(ra), rad2deg(dec));
+    printf("slalib ra, dec = %.8g, %.8g\n", rad2deg(ra), rad2deg(dec));
+
+    double tol = arcsec2rad(0.22);
+    assert(fabs(coords->ra[0] - ra) < tol);
+    assert(fabs(coords->dec[0] - dec) < tol);
+
+    ACTpolState_free(state);
+    ACTpolArrayCoords_free(coords);
+    ACTpolArray_free(array);
 }
 
 int
