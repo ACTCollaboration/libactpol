@@ -42,26 +42,20 @@ ACTpolArray_init(ACTpolArray *array, double freq_GHz)
     array->freq_GHz = freq_GHz;
 }
 
-static void
-focalplane_to_alt_az(const Quaternion focalplane_q,
+void
+ACTpolArray_horn_alt_az(const ACTpolArray *array, int index,
         const ACTpolState *state, double *alt, double *az)
 {
+    assert(index >= 0 && index < array->nhorns);
+
     Quaternion q;
-    Quaternion_mul(q, state->focalplane_to_NWU_q, focalplane_q);
+    Quaternion_mul(q, state->focalplane_to_NWU_q, array->horn[index].focalplane_q);
 
     double mat[3][3];
     Quaternion_conj(q);
     Quaternion_to_matrix(q, mat);
     actpol_vec2ang(mat[2], az, alt);
     *az = -*az;
-}
-
-void
-ACTpolArray_horn_alt_az(const ACTpolArray *array, int index,
-        const ACTpolState *state, double *alt, double *az)
-{
-    assert(index >= 0 && index < array->nhorns);
-    focalplane_to_alt_az(array->horn[index].focalplane_q, state, alt, az);
 }
 
 ACTpolArrayCoords *
