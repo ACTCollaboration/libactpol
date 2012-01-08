@@ -78,10 +78,6 @@ ACTpolState_update_boresight(ACTpolState *state, double boresight_alt, double bo
 {
     state->boresight_alt = boresight_alt;
     state->boresight_az = boresight_az;
-
-    Quaternion_identity(state->focalplane_to_NWU_q);
-    actpol_rotate_focalplane_to_NWU(state->boresight_alt, state->boresight_az,
-        state->focalplane_to_NWU_q);
 }
 
 void

@@ -51,8 +51,6 @@ typedef struct
     QuaternionSlerp slerp;
     double slerp_unixtime0;
     double slerp_length;
-
-    Quaternion focalplane_to_NWU_q;
 }
 ACTpolState;
 

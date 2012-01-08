@@ -42,22 +42,6 @@ ACTpolArray_init(ACTpolArray *array, double freq_GHz)
     array->freq_GHz = freq_GHz;
 }
 
-void
-ACTpolArray_horn_alt_az(const ACTpolArray *array, int index,
-        const ACTpolState *state, double *alt, double *az)
-{
-    assert(index >= 0 && index < array->nhorns);
-
-    Quaternion q;
-    Quaternion_mul(q, state->focalplane_to_NWU_q, array->horn[index].focalplane_q);
-
-    double mat[3][3];
-    Quaternion_conj(q);
-    Quaternion_to_matrix(q, mat);
-    actpol_vec2ang(mat[2], az, alt);
-    *az = -*az;
-}
-
 ACTpolArrayCoords *
 ACTpolArrayCoords_alloc(const ACTpolArray *array)
 {
@@ -118,8 +102,16 @@ int
 ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state)
 {
     const ACTpolArray *array = coords->array;
+
+    Quaternion focalplane_to_NWU_q;
+    Quaternion_identity(focalplane_to_NWU_q);
+    actpol_rotate_focalplane_to_NWU(
+        state->boresight_alt - coords->mean_ref,
+        state->boresight_az,
+        focalplane_to_NWU_q);
+
     Quaternion focalplane_to_GCRS;
-    Quaternion_mul(focalplane_to_GCRS, state->NWU_to_GCRS_q, state->focalplane_to_NWU_q);
+    Quaternion_mul(focalplane_to_GCRS, state->NWU_to_GCRS_q, focalplane_to_NWU_q);
 
     #pragma omp parallel for
     for (int i = 0; i != array->nhorns; ++i)

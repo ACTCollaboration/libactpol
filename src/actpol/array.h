@@ -36,10 +36,6 @@ ACTpolArray_free(ACTpolArray *array);
 void
 ACTpolArray_init(ACTpolArray *array, double freq_GHz);
 
-void
-ACTpolArray_horn_alt_az(const ACTpolArray *array, int index,
-        const ACTpolState *state, double *alt, double *az);
-
 typedef struct
 {
     const ACTpolArray *array;
