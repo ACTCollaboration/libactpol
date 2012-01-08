@@ -64,6 +64,9 @@ ACTpolArrayCoords_update_refraction(ACTpolArrayCoords *coords,
 int
 ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state);
 
+int
+ACTpolArrayCoords_update_fast(ACTpolArrayCoords *coords, const ACTpolState *state);
+
 #ifdef __cplusplus
 }
 #endif
