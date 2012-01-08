@@ -41,6 +41,9 @@ actpol_vec2ang(const double r[3], double *a, double *d)
 }
 
 void
+actpol_aberration(const double u[3], const double beta[3], Quaternion q);
+
+void
 actpol_diurnal_aberration(const double r[3], Quaternion q);
 
 void
