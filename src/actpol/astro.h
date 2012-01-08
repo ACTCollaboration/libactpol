@@ -44,7 +44,7 @@ void
 actpol_diurnal_aberration(const double r[3], Quaternion q);
 
 void
-actpol_annual_aberration(const double r[3], Quaternion q);
+actpol_annual_aberration(const double jd_tdb[2], const double r[3], Quaternion q);
 
 void
 actpol_rotate_NWU_to_ITRS(Quaternion q);
