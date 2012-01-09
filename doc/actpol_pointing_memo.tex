@@ -1,19 +1,15 @@
 \documentclass[10pt,preprint]{aastex}
 \usepackage{natbib}
+\usepackage[normalem]{ulem}
 \bibliographystyle{apj}
 
-%\slugcomment{\today}
-
 \newcommand{\Ovec}{{\vec O}}
-\newcommand{\rhat}{{\hat r}}
 \newcommand{\east}{{\hat E}}
 \newcommand{\rvec}{{\vec r}}
 \newcommand{\uvec}{{\hat r}}
 \newcommand{\zhat}{{\hat z}}
-\newcommand{\slalib}{\texttt{slaLib}}
-\newcommand{\refraction}{\mathrm{slaRefro}}
-\newcommand{\alt}{\mathrm{Alt}}
-\newcommand{\az}{\mathrm{Az}}
+\newcommand{\alt}{\mathrm{Alt}_0}
+\newcommand{\az}{\mathrm{Az}_0}
 \newcommand{\ITRS}{\mathrm{ITRS}}
 \newcommand{\GCRS}{\mathrm{GCRS}}
 \newcommand{\JD}{\mathrm{JD}}
@@ -24,41 +20,95 @@
 \newcommand{\UEN}{\mathrm{UEN}}
 \newcommand{\LA}{\mathrm{LA}}
 \newcommand{\IERS}{\mathrm{IERS}}
+
+\newcommand{\rhat}{{\hat r}}
+\newcommand{\rhorn}{{\hat r}_\mathrm{horn}}
+\newcommand{\rfocal}{{\hat r}_\mathrm{focal}}
+\newcommand{\robs}{{\hat r}_\mathrm{obs}}
 \newcommand{\rtopo}{{\hat r}_\mathrm{topo}}
+\newcommand{\rgcrs}{{\hat r}_\mathrm{GCRS}}
+\newcommand{\rbcrs}{{\hat r}_\mathrm{BCRS}}
 
 \begin{document}
 \title{ACTpol Pointing}
 \author{Mike Nolta\\\today}
 
 \begin{abstract}
-A short note on how to convert from ACTpol to celestial coordinates.
-Effects smaller than $0.1\arcsec$ are neglected.
+How \texttt{libactpol} converts from telescope to celestial coordinates.
+See the appendix for a glossary of definitions, and see \citet{usno179} for more
+information about the coordinate systems.
 \end{abstract}
 
-\section{Miasma Theory}
-%\section{``Since the beginning of time, man has yearned to destroy the atmosphere.''}
-%\subsection{Observed $\to$ Topocentric}
+\section{Overview}
+
+\begin{enumerate}
+\item Convert telescope encoders to horizon coordinates.
+\item Correct for atmospheric refraction.
+\item Boost to cancel Earth's rotation (diurnal abberation).
+\item Translate to Earth barycenter (diurnal parallax) [currently neglected].
+\item Rotate to crust-fixed coordinates (the ITRS).
+\item Rotate to Earth-centered celestial coordinates (the GCRS).
+\item Boost to cancel Earth's orbital velocity (annual aberration).
+\item Translate to Solar barycenter (the BCRS/ICRS) (annual parallax) [currently neglected].
+\end{enumerate}
+
+\section{Step 1: Telescope $\to$ Horizon}
+
+We start by defining feedhorn-centric coordinates:
+$\hat x$ and $\hat y$ along the detector polarization directions
+and $\hat z$ pointing toward the sky along the line of sight.
+Next, we need to define the rotation from feedhorn- to boresight-centric coordinates:
+\begin{eqnarray}
+\rfocal = R_1(f_y)R_2(-f_x)R_3(f_\phi) \rhorn
+\end{eqnarray}
+This convention was chosen so that $f_x,f_y,f_\phi$ match Ben's array layout spreadsheet.
+Fig.~\ref{fig:focalplane} shows the expected PA1 focalplane layout.
+Adopting NWU (``north, west, up'') as the axes of our horizon coordinates,
+\begin{eqnarray}
+\robs = R_3(\az)R_2(\alt-\pi/2)R_3(-\pi) \rfocal
+\end{eqnarray}
+where $\alt,\az$ are the boresight coordinates.
+
+\begin{figure}
+\plotone{focalplane.eps}
+\caption{The ACTpol PA1 focalplane. The $x$-axis is $(\rfocal\cdot\hat x)(180/\pi)$,
+and similarly for the $y$-axis.\label{fig:focalplane}}
+\end{figure}
+
+\section{Step 2: Miasma Theory}
 
 Atmospheric refraction makes objects appear higher in the sky than they really are,
-and so we start by applying an altitude adjustment:
-\begin{equation}
-\alt' = \alt + \refraction(\alt,\{p_i\})
-\end{equation}
-where $\refraction$ is a function in the {\slalib} library, and $\{p_i\}$ is a set of parameters describing the site
-conditions (elevation, pressure, temperature, \dots).
+so we need to apply an \sout{attitude} altitude adjustment
 \begin{eqnarray}
-\rtopo &=& \left(\begin{array}{c}
-\sin \alt'\\
-\cos\alt' \sin\az \\
-\cos\alt' \cos\az \\
-\end{array}\right)
+\rtopo = R_3(\az)R_2(-\xi_0)R_3(-\az) \robs.
 \end{eqnarray}
-Note that we've chosen a slightly unusual basis ordering: UEN, or ``up, east, north''.
+Note that, for the moment, we have neglected the variation of $\xi$ across the array,
+which is ${\cal O}(1\arcsec)$.
 
-\section{A Journey to the Center of the Earth}
+To calculate $\xi$, we use the \texttt{slalib:slaRefro} routine, which is
+a function of the telescope position (elevation \& latitude), the observing
+frequency, and the local weather conditions (pressure, temperature, relative humidity,
+\& tropospheric lapse rate).
+We fix the tropospheric lapse rate to its standard value, $6.5\,\mathrm{K/km}$.
+Fig.~\ref{fig:ref} plots $\xi$ versus altitude for various weather conditions,
+showing that $\xi$ is most sensitive to the temperature and humidity.
+
+\begin{figure}
+\plotone{refraction.eps}
+\caption{ACTpol site refraction correction for various weather conditions.\label{fig:ref}}
+\end{figure}
+
+\section{Steps 3--5: Journey to the Center of the Earth}
 
 Now we want to shift our coordinates to the Earth's barycenter, which requires
 a combination of a boost (to cancel out the Earth's rotation), a rotation, and a translation.
+
+Let $\vec v_r$ be ACTpol's velocity relative to the Earth's barycenter, and $\vec\beta_r\equiv\vec v_r/c$.
+Since $|\vec\beta_r| \ll 1$, we can approximate the aberration correction as
+\begin{eqnarray}
+\rhat_\LA = R(\rtopo\times\vec\beta_r) \rtopo
+\end{eqnarray}
+where $R(\vec\delta)$ is a clockwise rotation about the $\hat\delta$-axis by $|\vec\delta|$ radians.
 
 ACTpol's position on the surface of the Earth, in geocentric coordinates, is
 \begin{eqnarray}
@@ -75,74 +125,55 @@ S &=& (1-f)^2 C \\
 f &=& 1/298.257223563 \\
 a &=& 6378137\,\mathrm{m}
 \end{eqnarray}
-The values of $a$ and $f$ are from WGS84.
-At our level of precision GPS $\approx$ WGS84 $\approx$ ITRS, so we'll use them interchangeably.
-
-%\subsection{Topocentric $\to$ Local Apparent}
-
-Because we observe in a moving reference frame, 
-``Diurnal aberration'' refers to the aberration caused by the Earth's rotation.
- tilts observed positions towards the direction of motion.
-For $v/c \ll 1$, the amplitude of the effect is $v\sin\theta/c$, where $\theta$ is the angle between
-object and direction of motion.
-
-ACTpol's velocity due to the Earth's rotation is
+The values of $a$ and $f$ are from WGS84.\footnote{
+At our level of precision GPS $\approx$ WGS84 $\approx$ ITRS, so we'll use them interchangeably.}
+Thus ACTpol's velocity due to the Earth's rotation is
 \begin{eqnarray}
-\vec v/c &=& \frac{\omega}{c}\zhat_\ITRS\times\Ovec_\ITRS
+\vec\beta_r &=& \frac{\omega}{c}\zhat_\ITRS\times\Ovec_\ITRS
 \\
 &=& \frac{\omega}{c} (aC+h_G) \cos\phi_G \east
 \\
 &\approx& 0.295043 \arcsec\east
 \end{eqnarray}
 where $\omega = 7.292115\times10^{-5}\,\mathrm{rad/s}$ is the Earth's nominal mean angular speed,
-and $\east$ is unit vector pointing east.
-Let $\vec n = \rtopo\times\east$.
-Since $|\vec n| = \sin\theta$ where $\theta$ is the angle between $\rtopo$ and $\east$,
+and $\east$ is the unit vector pointing east.
+
+Now that we've corrected for diurnal aberration, we need to translate and rotate into geocentric
+coordinates. We'll assume the target is infinitely far away and ignore the translation.
+Since we chose the NWU horizon basis,
 \begin{eqnarray}
-\rhat_\LA = R_{\hat n}(-0.295043 \arcsec|\vec n|) \rtopo
+\rhat_\ITRS &=& R_3(-\lambda_G) R_2(\phi_G-\pi/2) R_3(-\pi) \rhat_\LA
 \end{eqnarray}
 
-%\section{Local Apparent $\to$ ITRS}
+\section{Step 6: ITRS $\to$ GCRS}
 
-Now that we've corrected for refraction and diurnal aberration, we need to rotate into geocentric
-coordinates.\footnote{Well, technically we need to translate first, and then rotate, but we'll assume the target is
-infinitely far away and ignore the translation. So this may not be correct for planets.}
-Because we chose the UEN basis for $\rhat_\LA$,
+For our purposes the conversion from ITRS to GCRS is a black box, simply a complex time-dependent rotation matrix.
+From Fig.~5.1 of \cite{iers2010}, we find
 \begin{eqnarray}
-%\rhat_\ITRS &=& R_3(-\lambda_G) R_2(\phi_G) \rhat_\LA
-%\\
-\rhat_\ITRS &=& R_3(-\lambda_G) R_2(\phi_G-\pi/2) R_3(\pi) \rhat_\NWU
-%\\
-%\rhat_\ITRS &=& R_3(-\lambda_G) R_2(\phi_G-\pi/2) R_3(-\pi/2) \rhat_\ENU
-\end{eqnarray}
-
-\section{ITRS $\to$ GCRS}
-
-Fig.~5.1 of \cite{iers2010}
-
-\begin{eqnarray}
-\rhat_\GCRS &=& R_3(-E) R_2(-d) R_3(E + s - \theta - s')R_2(x_p)R_1(y_p) \rhat_\ITRS \\
-\theta &=& 2\pi(0.7790572732640 + 1.00273781191135448 D_U)
+\rhat_\GCRS &=& R_3(-E) R_2(-d) R_3(E + s - \theta - s')R_2(x_p)R_1(y_p) \rhat_\ITRS
 \end{eqnarray}
 where
-\begin{eqnarray}
-(X,Y,Z) &=& (\sin d \cos E, \sin d \sin E, \cos d)
-\end{eqnarray}
 \begin{enumerate}
-\item $(X,Y,s)$ is calculated by \texttt{iauXys06a}
-\item \texttt{iauEra00} for $\theta$
-\item $s'\approx0$
-\item $(\Delta X,\Delta Y)_{2006} \approx (0,0)$
-\item $(x_p,y_p) \approx (x,y)_\IERS$
+\item $(\sin d \cos E, \sin d \sin E, \cos d) \equiv (X,Y,Z)
+= (X,Y,\sqrt{1 - X^2 - Y^2})$.
+\item $(X,Y,s)$ are calculated by \texttt{sofa:iauXys06a}.
+We ignore the corrections $(\Delta X,\Delta Y)_{2006} \approx 0.1\,\mathrm{mas}$.
+\item $\theta$ is calculated by \texttt{sofa:iauEra00}.
+\item We ignore $s' = -47T\,\mu\mathrm{as}$, where $T$ is time in centuries since J2000.0.
+\item $(x_p,y_p) \approx (x,y)_\IERS$ tabulated in IERS Bulletin A.
 \end{enumerate}
-%$D_U=\JD(\UTone) - 2451545.0$, days since 2000 Jan 1, 12h UT1\\
 
-\section{Plunge Orbit}
-%\section{GCRS $\to$ BCRS}
+\section{Steps 7--8: Stop the World, I Want to Get Off}
 
-Shift from the Earth's barycenter to the Solar system's barycenter.
-Annual aberration.
+Let $\vec v_o$ be the velocity of Earth's barycenter relative to the solar barycenter, and $\vec\beta_o\equiv\vec v_o/c$.
+\begin{eqnarray}
+\rbcrs = R(\rgcrs\times\vec\beta_o) \rgcrs
+\end{eqnarray}
+We use the \texttt{sofa:iauEpv00} routine to calculate $\vec v_o$.
+For efficiency, we only calculate $\vec v_o$ once every 2.4~seconds, which is approximately the time
+it takes $\vec v_o$ to rotate by $0.1\arcsec$.
 
+\nocite{*}
 \bibliography{references}
 \appendix
 
@@ -155,19 +186,21 @@ CIP & Celestial Intermediate Pole \\
 GCRS & Geocentric Celestial Reference System \\
 GPS & Global Positioning System \\
 ICRS & International Celestial Reference System \\
+IERS & International Earth Rotation \& Reference Systems Service \\
 ITRS & International Terrestrial Reference System \\
 JD & Julian date \\
 UT1 & Universal Time \\
 UTC & Coordinated Universal Time \\
 WGS84 & World Geodetic System 1984 \\
-$\az$ & observed azimuth \\
-$\alt$ & observed elevation \\
-$h_G$ & geodetic height = 5188 m \\
-$\lambda_G$ & geodetic east longitude = $-67.7876^\circ$ \\
-$\phi_G$ & geodetic latitude = $-22.9585^\circ$ \\
-$R_1(a)$ & $x$-rotation matrix \\
-$R_2(a)$ & $y$-rotation matrix \\
-$R_3(a)$ & $z$-rotation matrix \\
+$\az$ & observed boresight azimuth \\
+$\alt$ & observed boresight elevation \\
+$h_G$ & geodetic height (ACTpol = 5188 m) \\
+$\lambda_G$ & geodetic east longitude (ACTpol = $-67.7876^\circ$) \\
+$\phi_G$ & geodetic latitude (ACTpol = $-22.9585^\circ$) \\
+$R_1(\psi)$ & $\hat x$-axis clockwise rotation matrix \\
+$R_2(\psi)$ & $\hat y$-axis clockwise rotation matrix \\
+$R_3(\psi)$ & $\hat z$-axis clockwise rotation matrix \\
+$R(\vec\delta)$ & $\hat\delta$-axis rotation matrix \\
 $s$ & CIO locator \\
 $\theta$ & Earth Rotation Angle \\
 $x_p$, $y_p$ & standard polar wobble parameters \\
@@ -197,6 +230,14 @@ R_3(\alpha) &=&
 \end{array}\right)
 \end{eqnarray}
 
-\section{Example}
+\section{Polarization Convention}
+
+Given a line of sight vector $\hat r$ and polarization direction $\hat p$,
+$(\sin\gamma,\cos\gamma) = (\hat p \cdot \hat w, \hat p \cdot \hat n)$, where
+\begin{eqnarray}
+\hat w &\propto& \hat r \times \hat z
+\\
+\hat n &=& \hat w \times \hat r
+\end{eqnarray}
 
 \end{document}
