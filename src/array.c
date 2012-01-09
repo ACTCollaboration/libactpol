@@ -62,16 +62,20 @@ ACTpolArrayCoords_alloc(const ACTpolArray *array)
     coords->ref = (double *)malloc(sizeof(double) * array->nhorns);
     coords->ra = (double *)malloc(sizeof(double) * array->nhorns);
     coords->dec = (double *)malloc(sizeof(double) * array->nhorns);
-    coords->sin2gamma = (double *)malloc(sizeof(double) * array->nhorns);
-    coords->cos2gamma = (double *)malloc(sizeof(double) * array->nhorns);
+    coords->sin2gamma1 = (double *)malloc(sizeof(double) * array->nhorns);
+    coords->cos2gamma1 = (double *)malloc(sizeof(double) * array->nhorns);
+    coords->sin2gamma2 = (double *)malloc(sizeof(double) * array->nhorns);
+    coords->cos2gamma2 = (double *)malloc(sizeof(double) * array->nhorns);
     return coords;
 }
 
 void
 ACTpolArrayCoords_free(ACTpolArrayCoords *coords)
 {
-    free(coords->cos2gamma);
-    free(coords->sin2gamma);
+    free(coords->cos2gamma2);
+    free(coords->sin2gamma2);
+    free(coords->cos2gamma1);
+    free(coords->sin2gamma1);
     free(coords->dec);
     free(coords->ra);
     free(coords->ref);
@@ -183,8 +187,12 @@ ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state)
 
         double sin_g = vec3_dot_product(p1, w);
         double cos_g = vec3_dot_product(p1, n);
-        coords->sin2gamma[i] = 2*sin_g*cos_g;
-        coords->cos2gamma[i] = 2*cos_g*cos_g - 1;
+        coords->sin2gamma1[i] = 2*sin_g*cos_g;
+        coords->cos2gamma1[i] = 2*cos_g*cos_g - 1;
+
+        // assume 1&2 are separated by exactly 90deg
+        coords->sin2gamma2[i] = -coords->sin2gamma1[i];
+        coords->cos2gamma2[i] = -coords->cos2gamma1[i];
     }
 
     return 0;
@@ -245,8 +253,12 @@ ACTpolArrayCoords_update_fast(ACTpolArrayCoords *coords, const ACTpolState *stat
 
         double sin_g = vec3_dot_product(p1, w);
         double cos_g = vec3_dot_product(p1, n);
-        coords->sin2gamma[i] = 2*sin_g*cos_g;
-        coords->cos2gamma[i] = 2*cos_g*cos_g - 1;
+        coords->sin2gamma1[i] = 2*sin_g*cos_g;
+        coords->cos2gamma1[i] = 2*cos_g*cos_g - 1;
+
+        // assume 1&2 are separated by exactly 90deg
+        coords->sin2gamma2[i] = -coords->sin2gamma1[i];
+        coords->cos2gamma2[i] = -coords->cos2gamma1[i];
     }
 
     return 0;
