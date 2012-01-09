@@ -4,12 +4,13 @@
 /run_configure
 
 # configure
-Makefile
+/Makefile
 /config.h
 /config.log
 /config.status
 /stamp-h1
 /src/.deps/
+/src/Makefile
 
 # automake
 Makefile.in
