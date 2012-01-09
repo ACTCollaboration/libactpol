@@ -6,11 +6,13 @@ nobase_include_HEADERS = actpol/actpol.h \
 			 actpol/map.h \
 			 actpol/oldact.h \
 			 actpol/quaternion.h \
-			 actpol/state.h
+			 actpol/state.h \
+			 actpol/vec3.h
 
 lib_LIBRARIES = libactpol.a
 libactpol_a_SOURCES = array.c \
 		      astro.c \
+		      debug.h \
 		      iers_bulletin_a.c \
 		      iers_bulletin_a.h \
 		      map.c \
@@ -23,9 +25,6 @@ actpol_refraction_LDADD = libactpol.a -lcfitsio -lslalib -lsofa_c -lwcs
 
 check_PROGRAMS = test
 test_LDADD = libactpol.a -lcfitsio -lslalib -lsofa_c -lwcs
-#test_map_LDADD = libactpol.a -lcfitsio -lwcs
-#test_quaternion_LDADD = libactpol.a -lsofa_c
-#test_astro_LDADD = libactpol.a -lsofa_c -lslalib
 TESTS = $(check_PROGRAMS)
 
 #EXTRA_DIST = iers_bulletin_a.dat \
