@@ -137,9 +137,7 @@ compute_mean_focalplane_to_BCRS(const ACTpolArrayCoords *coords,
 
     // annual aberration correction
     Quaternion GCRS_to_BCRS;
-    double tt_jd[2];
-    ACTpolState_tt_jd(state, tt_jd);
-    actpol_annual_aberration(tt_jd, r, GCRS_to_BCRS);
+    actpol_aberration(r, state->earth_orbital_beta, GCRS_to_BCRS);
 
     Quaternion_mul(focalplane_to_BCRS, GCRS_to_BCRS, focalplane_to_GCRS);
 }

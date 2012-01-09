@@ -51,6 +51,10 @@ typedef struct
     QuaternionSlerp slerp;
     double slerp_unixtime0;
     double slerp_length;
+
+    // earth orbital beta (v/c)
+    double eob_unixtime;
+    double earth_orbital_beta[3];
 }
 ACTpolState;
 
@@ -62,9 +66,6 @@ ACTpolState_free(ACTpolState *state);
 
 void
 ACTpolState_init(ACTpolState *state);
-
-void
-ACTpolState_tt_jd(const ACTpolState *state, double tt_jd[2]);
 
 void
 ACTpolState_update(ACTpolState *state, double unixtime, double boresight_alt, double boresight_az);

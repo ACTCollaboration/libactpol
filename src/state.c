@@ -64,6 +64,7 @@ ACTpolState_init(ACTpolState *state)
 {
     state->slerp_unixtime0 = 0.;
     state->slerp_length = 660.; // 11 minutes
+    state->eob_unixtime = 0.;
 }
 
 void
@@ -81,14 +82,7 @@ ACTpolState_update_boresight(ACTpolState *state, double boresight_alt, double bo
     state->boresight_az = boresight_az;
 }
 
-void
-ACTpolState_update_unixtime(ACTpolState *state, double unixtime)
-{
-    state->unixtime = unixtime;
-    actpol_NWU_to_GCRS_rotation(unixtime, state->NWU_to_GCRS_q);
-}
-
-void
+static void
 ACTpolState_tt_jd(const ACTpolState *state, double jd_tt[2])
 {
     double jd_utc[2], jd_tai[2];
@@ -106,10 +100,33 @@ ACTpolState_tt_jd(const ACTpolState *state, double jd_tt[2])
     assert(stat == 0);
 }
 
+static void
+ACTpolState_update_earth_orbital_velocity(ACTpolState *state)
+{
+    double jd_tdb[2], pvb[2][3];
+
+    ACTpolState_tt_jd(state, jd_tdb); // tt ~ tdb
+    iauEpv00(jd_tdb[0], jd_tdb[1], pvb, pvb);
+
+    for (int i = 0; i < 3; i++)
+        state->earth_orbital_beta[i] = pvb[1][i]/SPEED_OF_LIGHT_AU_PER_D;
+
+    state->eob_unixtime = state->unixtime;
+}
+
+void
+ACTpolState_update_unixtime(ACTpolState *state, double unixtime)
+{
+    state->unixtime = unixtime;
+    actpol_NWU_to_GCRS_rotation(unixtime, state->NWU_to_GCRS_q);
+    ACTpolState_update_earth_orbital_velocity(state);
+}
+
 void
 ACTpolState_update_unixtime_fast(ACTpolState *state, double unixtime)
 {
     state->unixtime = unixtime;
+
     double t = (unixtime - state->slerp_unixtime0)/state->slerp_length;
     if (0. <= t && t <= 1.) {
         QuaternionSlerp_interpolate(&state->slerp, t, state->NWU_to_GCRS_q);
@@ -120,6 +137,10 @@ ACTpolState_update_unixtime_fast(ACTpolState *state, double unixtime)
         actpol_NWU_to_GCRS_rotation(unixtime + state->slerp_length, q1);
         QuaternionSlerp_init(&state->slerp, state->NWU_to_GCRS_q, q1);
     }
+
+    // recalc every 2.4 secs (time it takes to move ~0.1")
+    if (unixtime > state->eob_unixtime + 2.4)
+        ACTpolState_update_earth_orbital_velocity(state);
 }
 
 void
