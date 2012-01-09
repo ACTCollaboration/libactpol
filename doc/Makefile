@@ -1,5 +1,5 @@
 
-DOC = actpol_pointing_memo
+DOC = pointing
 
 .PHONY: ps pdf all clean default
 
@@ -23,3 +23,4 @@ all: ps pdf
 
 clean:
 	-rm *.aux *.log *.dvi *.bbl *.blg
+
