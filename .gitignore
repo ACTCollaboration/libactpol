@@ -1,6 +1,5 @@
 *.[oa]
 *~
-*.dat
 /run_configure
 
 # configure
