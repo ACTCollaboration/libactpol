@@ -277,7 +277,7 @@ test_astro(void)
     observed_altaz_to_mean_radec( &site, freq_GHz, 1, &unixtime, &alt, &az, &ra, &dec );
     printf("slalib ra, dec = %.8g, %.8g\n", rad2deg(ra), rad2deg(dec));
 
-    double tol = arcsec2rad(0.22);
+    double tol = arcsec2rad(0.05);
     assert(fabs(coords->ra[0] - ra) < tol);
     assert(fabs(coords->dec[0] - dec) < tol);
 

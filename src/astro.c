@@ -25,11 +25,15 @@ actpol_aberration(const double u[3], const double beta[3], Quaternion q)
 void
 actpol_diurnal_aberration(const double r[3], Quaternion q)
 {
+    /*
     const double v = 0.295043*M_PI/(180.*3600.);
     double n[3], east[3] = {0.,-1.,0.}; // NWU
     vec3_cross_product(n, r, east);
     double angle = v*vec3_norm(n)/vec3_norm(r);
     Quaternion_rot(q, -angle, n);
+    */
+    const double beta[3] = {0., arcsec2rad(-0.295043), 0.}; // NWU
+    actpol_aberration(r, beta, q);
 }
 
 void

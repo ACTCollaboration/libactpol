@@ -116,24 +116,31 @@ static void
 compute_mean_focalplane_to_BCRS(const ACTpolArrayCoords *coords,
     const ACTpolState *state, Quaternion focalplane_to_BCRS)
 {
-    // focalplane -> horizon
-    Quaternion focalplane_to_NWU_q;
-    Quaternion_identity(focalplane_to_NWU_q);
+    double r[3];
+    Quaternion q;
+
+    // focalplane -> topo
+    Quaternion focalplane_to_topo;
+    Quaternion_identity(focalplane_to_topo);
     actpol_rotate_focalplane_to_NWU(
         state->boresight_alt - coords->mean_ref,
         state->boresight_az,
-        focalplane_to_NWU_q);
+        focalplane_to_topo);
+
+    // diurnal aberration
+    Quaternion diurnal_aberration, focalplane_to_apparent;
+    Quaternion_mul(q, focalplane_to_topo, coords->array->focalplane_q);
+    Quaternion_to_matrix_col3(q, r);
+    actpol_diurnal_aberration(r, diurnal_aberration);
+    Quaternion_mul(focalplane_to_apparent, diurnal_aberration, focalplane_to_topo);
 
     // focalplane -> GCRS
     Quaternion focalplane_to_GCRS;
-    Quaternion_mul(focalplane_to_GCRS, state->NWU_to_GCRS_q, focalplane_to_NWU_q);
+    Quaternion_mul(focalplane_to_GCRS, state->NWU_to_GCRS_q, focalplane_to_apparent);
 
     // center of array in GCRS
-    Quaternion q;
     Quaternion_mul(q, focalplane_to_GCRS, coords->array->focalplane_q);
-    double mat[3][3];
-    Quaternion_to_matrix(q, mat);
-    double r[3] = {mat[0][2], mat[1][2], mat[2][2]};
+    Quaternion_to_matrix_col3(q, r);
 
     // annual aberration correction
     Quaternion GCRS_to_BCRS;
