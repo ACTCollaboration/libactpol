@@ -7,6 +7,10 @@
 extern "C" {
 #endif
 
+#ifndef invsqrt
+static double inline invsqrt( double x ) { return 1./sqrt(x); };
+#endif
+
 static inline double
 vec3_norm(const double v[3])
 {
