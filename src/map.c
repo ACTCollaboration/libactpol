@@ -123,6 +123,31 @@ ACTpolMap_sky2pix(ACTpolMap *map, double ra, double dec)
     return -1;
 }
 
+long
+ACTpolMap_sky2pix_cea_fast(ACTpolMap *map, double ra, double sindec)
+{
+    double world[2] = {ra, sindec};
+    double imgcrd[2], pixcrd[2];
+    long pix[2];
+    for (int i = 0; i < 2; i++)
+    {
+        imgcrd[i] = fmod(world[i]*180./M_PI - map->wcs->crval[i], 360.);
+        //imgcrd[i] = fmod(world[i] - map->wcs->crval[i], 360.);
+        if (imgcrd[i] > 180.)
+            imgcrd[i] -= 360.;
+        else if (imgcrd[i] < -180.)
+            imgcrd[i] += 360.;
+        pixcrd[i] = imgcrd[i]/map->wcs->cdelt[i] + map->wcs->crpix[i];
+        pix[i] = (long) round(pixcrd[i] - 1.);
+    }
+
+    //printf("fast: %g,%g %g,%g %g,%g\n", world[0], world[1], imgcrd[0], imgcrd[1], pixcrd[0], pixcrd[1]);
+
+    if (pix[0] >= 0 && pix[0] < map->naxis1 && pix[1] >= 0 && pix[1] < map->naxis2)
+        return pix[0] + map->naxis1*pix[1];
+    return -1;
+}
+
 int
 ACTpolMap_pix2sky(ACTpolMap *map, long pix, double *ra, double *dec)
 {

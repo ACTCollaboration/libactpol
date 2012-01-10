@@ -38,6 +38,9 @@ ACTpolMap_write_to_fits(ACTpolMap *map, const char *filename);
 long
 ACTpolMap_sky2pix(ACTpolMap *map, double ra, double dec);
 
+long
+ACTpolMap_sky2pix_cea_fast(ACTpolMap *map, double ra, double sindec);
+
 int
 ACTpolMap_pix2sky(ACTpolMap *map, long pix, double *ra, double *dec);
 

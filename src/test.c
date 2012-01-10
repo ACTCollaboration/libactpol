@@ -52,12 +52,15 @@ test_map(void)
 
     // detailed pixel test
     for (int i = 0; i != 20; ++i) {
-        pix = ACTpolMap_sky2pix(map, ra-i*pixsize*0.2, dec+i*pixsize*0.2);
+        double ira = ra-i*pixsize*0.2, idec = dec+i*pixsize*0.2;
+        pix = ACTpolMap_sky2pix(map, ira, idec);
         stat = ACTpolMap_pix2sky(map, pix, &ra2, &dec2);
         assert(stat == 0);
         pix2 = ACTpolMap_sky2pix(map, ra2, dec2);
-        //printf("pix, pix2 = %ld, %ld\n", pix, pix2);
         assert(pix == pix2);
+        long pix3 = ACTpolMap_sky2pix_cea_fast(map, deg2rad(ira), sin(deg2rad(idec)));
+        //printf("pix, pix3 = %ld, %ld\n", pix, pix3);
+        assert(pix == pix3);
     }
 
     stat = ACTpolMap_write_to_fits(map, ofilename);
