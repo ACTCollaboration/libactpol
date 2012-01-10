@@ -58,10 +58,10 @@ ACTpolMap_alloc(long naxis1, long naxis2)
 }
 
 ACTpolMap *
-ACTpolMap_new(double ra_min, double ra_max, double dec_min, double dec_max, double pixsize)
+ACTpolMap_new(double ra_deg_min, double ra_deg_max, double dec_deg_min, double dec_deg_max, double pixsize)
 {
-    long naxis1 = (long) round((ra_max - ra_min)/pixsize);
-    long naxis2 = (long) round((dec_max - dec_min)/pixsize);
+    long naxis1 = (long) round((ra_deg_max - ra_deg_min)/pixsize);
+    long naxis2 = (long) round((dec_deg_max - dec_deg_min)/pixsize);
     assert(naxis1 > 0);
     assert(naxis2 > 0);
 
@@ -69,8 +69,8 @@ ACTpolMap_new(double ra_min, double ra_max, double dec_min, double dec_max, doub
 
     strcpy(wcs->ctype[0], "RA---CEA");
     strcpy(wcs->ctype[1], "DEC--CEA");
-    wcs->crval[0] = 0.5*(ra_min + ra_max);
-    wcs->crval[1] = 0.5*(dec_min + dec_max);
+    wcs->crval[0] = 0.5*(ra_deg_min + ra_deg_max);
+    wcs->crval[1] = 0.5*(dec_deg_min + dec_deg_max);
     wcs->cdelt[0] = -pixsize;
     wcs->cdelt[1] = pixsize;
     wcs->crpix[0] = 0.5*naxis1;
@@ -104,9 +104,9 @@ ACTpolMap_new_like(ACTpolMap *other_map)
 }
 
 long
-ACTpolMap_sky2pix(ACTpolMap *map, double ra, double dec)
+ACTpolMap_sky2pix(ACTpolMap *map, double ra_deg, double dec_deg)
 {
-    double world[2] = {ra, dec};
+    double world[2] = {ra_deg, dec_deg};
     double phi[2], theta[2], imgcrd[2], pixcrd[2];
     int wstat[2] = {0, 0};
     wcss2p(map->wcs, 1, 2, world, phi, theta, imgcrd, pixcrd, wstat);
@@ -149,7 +149,7 @@ ACTpolMap_sky2pix_cea_fast(ACTpolMap *map, double ra, double sindec)
 }
 
 int
-ACTpolMap_pix2sky(ACTpolMap *map, long pix, double *ra, double *dec)
+ACTpolMap_pix2sky(ACTpolMap *map, long pix, double *ra_deg, double *dec_deg)
 {
     assert(pix >= 0 && pix < map->npix);
 
@@ -166,8 +166,8 @@ ACTpolMap_pix2sky(ACTpolMap *map, long pix, double *ra, double *dec)
         return -1;
     }
 
-    *ra = world[0];
-    *dec = world[1];
+    *ra_deg = world[0];
+    *dec_deg = world[1];
     return 0;
 }
 

@@ -24,7 +24,7 @@ ACTpolMap *
 ACTpolMap_alloc(long naxis1, long naxis2);
 
 ACTpolMap *
-ACTpolMap_new(double ra_min, double ra_max, double dec_min, double dec_max, double pixsize);
+ACTpolMap_new(double ra_deg_min, double ra_deg_max, double dec_deg_min, double dec_deg_max, double pixsize_deg);
 
 ACTpolMap *
 ACTpolMap_new_like(ACTpolMap *other_map);
@@ -36,13 +36,13 @@ int
 ACTpolMap_write_to_fits(ACTpolMap *map, const char *filename);
 
 long
-ACTpolMap_sky2pix(ACTpolMap *map, double ra, double dec);
+ACTpolMap_sky2pix(ACTpolMap *map, double ra_deg, double dec_deg);
 
 long
 ACTpolMap_sky2pix_cea_fast(ACTpolMap *map, double ra, double sindec);
 
 int
-ACTpolMap_pix2sky(ACTpolMap *map, long pix, double *ra, double *dec);
+ACTpolMap_pix2sky(ACTpolMap *map, long pix, double *ra_deg, double *dec_deg);
 
 void
 ACTpolMap_free(ACTpolMap *map);
