@@ -43,6 +43,7 @@ typedef struct
     double *ref;
     double mean_ref;
     double *ra, *dec;
+    double *sindec;
     double *sin2gamma1, *cos2gamma1;
     double *sin2gamma2, *cos2gamma2;
 }

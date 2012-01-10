@@ -62,6 +62,7 @@ ACTpolArrayCoords_alloc(const ACTpolArray *array)
     coords->ref = (double *)malloc(sizeof(double) * array->nhorns);
     coords->ra = (double *)malloc(sizeof(double) * array->nhorns);
     coords->dec = (double *)malloc(sizeof(double) * array->nhorns);
+    coords->sindec = (double *)malloc(sizeof(double) * array->nhorns);
     coords->sin2gamma1 = (double *)malloc(sizeof(double) * array->nhorns);
     coords->cos2gamma1 = (double *)malloc(sizeof(double) * array->nhorns);
     coords->sin2gamma2 = (double *)malloc(sizeof(double) * array->nhorns);
@@ -76,6 +77,7 @@ ACTpolArrayCoords_free(ACTpolArrayCoords *coords)
     free(coords->sin2gamma2);
     free(coords->cos2gamma1);
     free(coords->sin2gamma1);
+    free(coords->sindec);
     free(coords->dec);
     free(coords->ra);
     free(coords->ref);
@@ -174,6 +176,7 @@ ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state)
         double *p2 = mat[1];
         double *r = mat[2];
 
+        coords->sindec[i] = r[2];
         actpol_vec2ang(r, coords->ra+i, coords->dec+i);
 
         // w = r x z
@@ -223,6 +226,7 @@ ACTpolArrayCoords_update_fast(ACTpolArrayCoords *coords, const ACTpolState *stat
 
         //actpol_vec2ang(r, coords->ra+i, coords->dec+i);
         coords->ra[i] = atan2(r[1], r[0]);
+        coords->sindec[i] = r[2];
         //coords->dec[i] = atan2(r[2], hypot(r[0],r[1]));
         //double true_dec = atan2(r[2], hypot(r[0],r[1]));
         if (i > 0) {
