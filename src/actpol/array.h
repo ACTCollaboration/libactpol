@@ -39,8 +39,7 @@ ACTpolArray_init(ACTpolArray *array, double freq_GHz, double focalplane_x, doubl
 
 typedef struct
 {
-    double ra, dec;
-    double sindec;
+    double ra, sindec;
     double sin2gamma1, cos2gamma1;
     double sin2gamma2, cos2gamma2;
 }
@@ -72,9 +71,6 @@ ACTpolArrayCoords_update_refraction(ACTpolArrayCoords *coords,
 
 int
 ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state);
-
-int
-ACTpolArrayCoords_update_fast(ACTpolArrayCoords *coords, const ACTpolState *state);
 
 #ifdef __cplusplus
 }

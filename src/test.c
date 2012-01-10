@@ -273,16 +273,17 @@ test_astro(void)
     ACTpolScan_init(&scan, alt, az, 5.);
     ACTpolArrayCoords_update_refraction(coords, &scan, &weather);
     ACTpolArrayCoords_update(coords, state);
-    printf("noltaq ra, dec = %.8g, %.8g\n", rad2deg(coords->horn[0].ra), rad2deg(coords->horn[0].dec));
+    printf("noltaq ra, sin(dec) = %.8g, %.8g\n", rad2deg(coords->horn[0].ra), coords->horn[0].sindec);
 
     ACTSite site;
     ACTSite_init(&site);
     observed_altaz_to_mean_radec( &site, freq_GHz, 1, &unixtime, &alt, &az, &ra, &dec );
-    printf("slalib ra, dec = %.8g, %.8g\n", rad2deg(ra), rad2deg(dec));
+    printf("slalib ra, sin(dec) = %.8g, %.8g\n", rad2deg(ra), sin(dec));
 
     double tol = arcsec2rad(0.05);
     assert(fabs(coords->horn[0].ra - ra) < tol);
-    assert(fabs(coords->horn[0].dec - dec) < tol);
+    //assert(fabs(coords->horn[0].dec - dec) < tol);
+    assert(fabs(coords->horn[0].sindec - sin(dec)) < tol);
 
     ACTpolState_free(state);
     ACTpolArrayCoords_free(coords);

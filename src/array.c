@@ -165,81 +165,13 @@ ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state)
         double *r = mat[2];
 
         ACTpolFeedhornCoords *horn = coords->horn+i;
-        horn->sindec = r[2];
-        actpol_vec2ang(r, &horn->ra, &horn->dec);
-
-        // w = r x z
-        double w[3], z[3] = {0, 0, 1};
-        vec3_cross_product(w, r, z);
-        vec3_unit(w);
-
-        // n = w x r
-        double n[3];
-        vec3_cross_product(n, w, r);
-
-        double sin_g = vec3_dot_product(p1, w);
-        double cos_g = vec3_dot_product(p1, n);
-        horn->sin2gamma1 = 2*sin_g*cos_g;
-        horn->cos2gamma1 = 2*cos_g*cos_g - 1;
-
-        // assume 1&2 are separated by exactly 90deg
-        horn->sin2gamma2 = -horn->sin2gamma1;
-        horn->cos2gamma2 = -horn->cos2gamma1;
-    }
-
-    return 0;
-}
-
-int
-ACTpolArrayCoords_update_fast(ACTpolArrayCoords *coords, const ACTpolState *state)
-{
-    const ACTpolArray *array = coords->array;
-
-    Quaternion focalplane_to_BCRS;
-    compute_mean_focalplane_to_BCRS(coords, state, focalplane_to_BCRS);
-
-    double asin_x0, asin_f0, asin_f1, asin_f2;
-
-    #pragma omp parallel for
-    for (int i = 0; i != array->nhorns; ++i)
-    {
-        Quaternion q;
-        Quaternion_mul(q, focalplane_to_BCRS, array->horn[i].focalplane_q);
-
-        double mat[3][3];
-        Quaternion_conj(q);
-        Quaternion_to_matrix(q, mat);
-        double *p1 = mat[0];
-        double *p2 = mat[1];
-        double *r = mat[2];
-
-        ACTpolFeedhornCoords *horn = coords->horn+i;
-        //actpol_vec2ang(r, coords->ra+i, coords->dec+i);
         horn->ra = atan2(r[1], r[0]);
         horn->sindec = r[2];
-        //coords->dec[i] = atan2(r[2], hypot(r[0],r[1]));
-        //double true_dec = atan2(r[2], hypot(r[0],r[1]));
-        if (i > 0) {
-            double dx = r[2] - asin_x0;
-            horn->dec = asin_f0 + (asin_f1 + asin_f2*dx)*dx;
-        } else {
-            double h = hypot(r[0], r[1]);
-            coords->horn[0].dec = atan2(r[2], h);
-            asin_x0 = r[2];
-            asin_f0 = coords->horn[0].dec;
-            asin_f1 = 1./h;
-            asin_f2 = 0.5*asin_x0*asin_f1*asin_f1*asin_f1;
-        }
-        //DEBUG("v2a: %d %g %g %g %g %.15g %.15g\n", i, r[0], r[1], r[2], coords->ra[i], coords->dec[i], true_dec);
 
         // w = r x z
         double w[3], z[3] = {0, 0, 1};
         vec3_cross_product(w, r, z);
         vec3_unit(w);
-        /* no noticible speedup
-        double s = 1./hypot(r[0],r[1]);
-        double w[3] = {r[1]*s, -r[0]*s, 0.};
-        */
 
         // n = w x r
         double n[3];
