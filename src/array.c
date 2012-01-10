@@ -60,26 +60,14 @@ ACTpolArrayCoords_alloc(const ACTpolArray *array)
     ACTpolArrayCoords *coords = (ACTpolArrayCoords *)malloc(sizeof(ACTpolArrayCoords));
     coords->array = array;
     coords->ref = (double *)malloc(sizeof(double) * array->nhorns);
-    coords->ra = (double *)malloc(sizeof(double) * array->nhorns);
-    coords->dec = (double *)malloc(sizeof(double) * array->nhorns);
-    coords->sindec = (double *)malloc(sizeof(double) * array->nhorns);
-    coords->sin2gamma1 = (double *)malloc(sizeof(double) * array->nhorns);
-    coords->cos2gamma1 = (double *)malloc(sizeof(double) * array->nhorns);
-    coords->sin2gamma2 = (double *)malloc(sizeof(double) * array->nhorns);
-    coords->cos2gamma2 = (double *)malloc(sizeof(double) * array->nhorns);
+    coords->horn = (ACTpolFeedhornCoords *)malloc(sizeof(ACTpolFeedhornCoords) * array->nhorns);
     return coords;
 }
 
 void
 ACTpolArrayCoords_free(ACTpolArrayCoords *coords)
 {
-    free(coords->cos2gamma2);
-    free(coords->sin2gamma2);
-    free(coords->cos2gamma1);
-    free(coords->sin2gamma1);
-    free(coords->sindec);
-    free(coords->dec);
-    free(coords->ra);
+    free(coords->horn);
     free(coords->ref);
     free(coords);
 }
@@ -176,8 +164,9 @@ ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state)
         double *p2 = mat[1];
         double *r = mat[2];
 
-        coords->sindec[i] = r[2];
-        actpol_vec2ang(r, coords->ra+i, coords->dec+i);
+        ACTpolFeedhornCoords *horn = coords->horn+i;
+        horn->sindec = r[2];
+        actpol_vec2ang(r, &horn->ra, &horn->dec);
 
         // w = r x z
         double w[3], z[3] = {0, 0, 1};
@@ -190,12 +179,12 @@ ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state)
 
         double sin_g = vec3_dot_product(p1, w);
         double cos_g = vec3_dot_product(p1, n);
-        coords->sin2gamma1[i] = 2*sin_g*cos_g;
-        coords->cos2gamma1[i] = 2*cos_g*cos_g - 1;
+        horn->sin2gamma1 = 2*sin_g*cos_g;
+        horn->cos2gamma1 = 2*cos_g*cos_g - 1;
 
         // assume 1&2 are separated by exactly 90deg
-        coords->sin2gamma2[i] = -coords->sin2gamma1[i];
-        coords->cos2gamma2[i] = -coords->cos2gamma1[i];
+        horn->sin2gamma2 = -horn->sin2gamma1;
+        horn->cos2gamma2 = -horn->cos2gamma1;
     }
 
     return 0;
@@ -224,19 +213,20 @@ ACTpolArrayCoords_update_fast(ACTpolArrayCoords *coords, const ACTpolState *stat
         double *p2 = mat[1];
         double *r = mat[2];
 
+        ACTpolFeedhornCoords *horn = coords->horn+i;
         //actpol_vec2ang(r, coords->ra+i, coords->dec+i);
-        coords->ra[i] = atan2(r[1], r[0]);
-        coords->sindec[i] = r[2];
+        horn->ra = atan2(r[1], r[0]);
+        horn->sindec = r[2];
         //coords->dec[i] = atan2(r[2], hypot(r[0],r[1]));
         //double true_dec = atan2(r[2], hypot(r[0],r[1]));
         if (i > 0) {
             double dx = r[2] - asin_x0;
-            coords->dec[i] = asin_f0 + (asin_f1 + asin_f2*dx)*dx;
+            horn->dec = asin_f0 + (asin_f1 + asin_f2*dx)*dx;
         } else {
             double h = hypot(r[0], r[1]);
-            coords->dec[0] = atan2(r[2], h);
+            coords->horn[0].dec = atan2(r[2], h);
             asin_x0 = r[2];
-            asin_f0 = coords->dec[0];
+            asin_f0 = coords->horn[0].dec;
             asin_f1 = 1./h;
             asin_f2 = 0.5*asin_x0*asin_f1*asin_f1*asin_f1;
         }
@@ -257,12 +247,12 @@ ACTpolArrayCoords_update_fast(ACTpolArrayCoords *coords, const ACTpolState *stat
 
         double sin_g = vec3_dot_product(p1, w);
         double cos_g = vec3_dot_product(p1, n);
-        coords->sin2gamma1[i] = 2*sin_g*cos_g;
-        coords->cos2gamma1[i] = 2*cos_g*cos_g - 1;
+        horn->sin2gamma1 = 2*sin_g*cos_g;
+        horn->cos2gamma1 = 2*cos_g*cos_g - 1;
 
         // assume 1&2 are separated by exactly 90deg
-        coords->sin2gamma2[i] = -coords->sin2gamma1[i];
-        coords->cos2gamma2[i] = -coords->cos2gamma1[i];
+        horn->sin2gamma2 = -horn->sin2gamma1;
+        horn->cos2gamma2 = -horn->cos2gamma1;
     }
 
     return 0;
