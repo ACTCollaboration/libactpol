@@ -270,7 +270,7 @@ test_astro(void)
     ACTpolScan_init(&scan, alt, az, 5.);
     ACTpolArrayCoords_update_refraction(coords, &scan, &weather);
     ACTpolArrayCoords_update(coords, state);
-    printf("noltaq ra, dec = %.8g, %.8g\n", rad2deg(coords->ra[0]), rad2deg(coords->dec[0]));
+    printf("noltaq ra, dec = %.8g, %.8g\n", rad2deg(coords->horn[0].ra), rad2deg(coords->horn[0].dec));
 
     ACTSite site;
     ACTSite_init(&site);
@@ -278,8 +278,8 @@ test_astro(void)
     printf("slalib ra, dec = %.8g, %.8g\n", rad2deg(ra), rad2deg(dec));
 
     double tol = arcsec2rad(0.05);
-    assert(fabs(coords->ra[0] - ra) < tol);
-    assert(fabs(coords->dec[0] - dec) < tol);
+    assert(fabs(coords->horn[0].ra - ra) < tol);
+    assert(fabs(coords->horn[0].dec - dec) < tol);
 
     ACTpolState_free(state);
     ACTpolArrayCoords_free(coords);
