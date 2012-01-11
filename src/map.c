@@ -132,7 +132,6 @@ ACTpolMap_sky2pix_cea_fast(ACTpolMap *map, double ra, double sindec)
     for (int i = 0; i < 2; i++)
     {
         imgcrd[i] = fmod(world[i]*180./M_PI - map->wcs->crval[i], 360.);
-        //imgcrd[i] = fmod(world[i] - map->wcs->crval[i], 360.);
         if (imgcrd[i] > 180.)
             imgcrd[i] -= 360.;
         else if (imgcrd[i] < -180.)
