@@ -207,16 +207,9 @@ ACTpolArrayCoords_update_fast(ACTpolArrayCoords *coords, const ACTpolState *stat
     double r0[3];
     Quaternion_to_matrix_col3(q0, r0);
 
-    double x0, y0, z02, atan_0, atan_x, atan_y, atan_xx, atan_xy, atan_yy;
-    x0 = r0[0];
-    y0 = r0[1];
-    z02 = x0*x0 + y0*y0;
-    atan_0 = atan2(y0, x0);
-    atan_x = -y0/z02;
-    atan_y = x0/z02;
-    atan_xy = atan_x*atan_x - atan_y*atan_y;
-    atan_xx = atan_x*atan_y;
-    atan_yy = -atan_xx;
+    double x0 = r0[0];
+    double y0 = r0[1];
+    double ra0 = atan2(y0, x0);
 
     #pragma omp parallel for
     for (int i = 0; i != array->nhorns; ++i)
@@ -230,11 +223,25 @@ ACTpolArrayCoords_update_fast(ACTpolArrayCoords *coords, const ACTpolState *stat
 
         ACTpolFeedhornCoords *horn = coords->horn+i;
 
-        //horn->ra = atan2(r[1], r[0]);
-        double dx = r[0] - x0;
-        double dy = r[1] - y0;
-        horn->ra = atan_0 + (atan_x + atan_xx*dx)*dx + (atan_y + atan_yy*dy)*dy + atan_xy*dx*dy;
+        /*
+         * define z = y/x, z0 = y0/x0
+         *
+         * atan(z) - atan(z0)
+         *  = atan(z) + atan(-z0)
+         *  = atan((z - z0)/(1 + z*z0))
+         *
+         * define p = (z - z0)/(1 + z*z0)
+         *
+         * p = (x0*y - x*y0)/(x*x0 + y*y0)
+         *
+         * atan(p) ~ p/(1 + p^2) [first term of Euler series of arctan]
+         *
+         * approximation appears to be good to ~0.1"
+         */
 
+        double p = (x0*r[1] - r[0]*y0)/(x0*r[0] + y0*r[1]);
+        double ra1 = p/(1. + p*p);
+        horn->ra = ra0 + ra1;
         horn->sindec = r[2];
 
         // w = r x z
