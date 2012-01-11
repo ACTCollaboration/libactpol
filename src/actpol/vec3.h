@@ -1,14 +1,10 @@
 
 #pragma once
 
-#include <math.h>
+#include "math.h"
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
-#ifndef invsqrt
-static double inline invsqrt( double x ) { return 1./sqrt(x); };
 #endif
 
 static inline double
