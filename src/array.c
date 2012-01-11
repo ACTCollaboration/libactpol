@@ -224,19 +224,19 @@ ACTpolArrayCoords_update_fast(ACTpolArrayCoords *coords, const ACTpolState *stat
         ACTpolFeedhornCoords *horn = coords->horn+i;
 
         /*
-         * define z = y/x, z0 = y0/x0
+         * Define z = y/x, z0 = y0/x0.
          *
-         * atan(z) - atan(z0)
-         *  = atan(z) + atan(-z0)
-         *  = atan((z - z0)/(1 + z*z0))
+         * atan(z) - atan(z0) = atan(z) + atan(-z0)
+         *                    = atan((z - z0)/(1 + z*z0))
          *
-         * define p = (z - z0)/(1 + z*z0)
+         * Let p = (z - z0)/(1 + z*z0)
+         *       = (x0*y - x*y0)/(x*x0 + y*y0).
          *
-         * p = (x0*y - x*y0)/(x*x0 + y*y0)
+         * For |p| << 1, atan(p) ~ p/(1 + p^2), the first term of the
+         * Euler series expansion of atan.
          *
-         * atan(p) ~ p/(1 + p^2) [first term of Euler series of arctan]
-         *
-         * approximation appears to be good to ~0.1"
+         * Approximation appears to be good to ~0.1".
+         * By contrast, 2nd order Taylor expansion is only good to ~10".
          */
 
         double p = (x0*r[1] - r[0]*y0)/(x0*r[0] + y0*r[1]);
