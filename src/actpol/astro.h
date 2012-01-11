@@ -7,7 +7,7 @@
 #pragma once
 
 #include "constants.h"
-#include "math.h" // for M_PI
+#include "math.h"
 #include "quaternion.h"
 #include "state.h"
 
