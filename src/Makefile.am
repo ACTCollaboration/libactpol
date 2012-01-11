@@ -4,6 +4,7 @@ nobase_include_HEADERS = actpol/actpol.h \
 			 actpol/astro.h \
 			 actpol/constants.h \
 			 actpol/map.h \
+			 actpol/math.h \
 			 actpol/oldact.h \
 			 actpol/quaternion.h \
 			 actpol/state.h \
