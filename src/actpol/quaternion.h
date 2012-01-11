@@ -114,8 +114,11 @@ Quaternion_sub(Quaternion q, const Quaternion a, const Quaternion b)
 
 void Quaternion_to_matrix(const Quaternion q, double mat[3][3]);
 
-// same as Quaternion_to_matrix, but only returns 3rd column
-void Quaternion_to_matrix_col3(const Quaternion q, double col3[3]);
+// same as Quaternion_to_matrix, but only returns single column
+// note: does not normalize quaternion before converting
+void Quaternion_to_matrix_col1(const Quaternion u, double col1[3]);
+void Quaternion_to_matrix_col2(const Quaternion u, double col1[3]);
+void Quaternion_to_matrix_col3(const Quaternion u, double col3[3]);
 
 void Quaternion_unit(Quaternion q);
 

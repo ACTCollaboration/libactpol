@@ -17,6 +17,7 @@ actpol_detector_to_focalplane_rotation(double focalplane_x, double focalplane_y,
     Quaternion_r3(q, -pol_angle);
     Quaternion_r2_mul(focalplane_x, q);
     Quaternion_r1_mul(-focalplane_y, q);
+    Quaternion_unit(q);
 }
 
 void
@@ -124,6 +125,7 @@ compute_mean_focalplane_to_BCRS(const ACTpolArrayCoords *coords,
     // diurnal aberration
     Quaternion diurnal_aberration, focalplane_to_apparent;
     Quaternion_mul(q, focalplane_to_topo, coords->array->focalplane_q);
+    Quaternion_unit(q);
     Quaternion_to_matrix_col3(q, r);
     actpol_diurnal_aberration(r, diurnal_aberration);
     Quaternion_mul(focalplane_to_apparent, diurnal_aberration, focalplane_to_topo);
@@ -134,6 +136,7 @@ compute_mean_focalplane_to_BCRS(const ACTpolArrayCoords *coords,
 
     // center of array in GCRS
     Quaternion_mul(q, focalplane_to_GCRS, coords->array->focalplane_q);
+    Quaternion_unit(q);
     Quaternion_to_matrix_col3(q, r);
 
     // annual aberration correction
@@ -141,6 +144,7 @@ compute_mean_focalplane_to_BCRS(const ACTpolArrayCoords *coords,
     actpol_aberration(r, state->earth_orbital_beta, GCRS_to_BCRS);
 
     Quaternion_mul(focalplane_to_BCRS, GCRS_to_BCRS, focalplane_to_GCRS);
+    Quaternion_unit(focalplane_to_BCRS);
 }
 
 int
@@ -181,6 +185,72 @@ ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state)
         double cos_g = vec3_dot_product(p1, n);
         horn->sin2gamma1 = 2*sin_g*cos_g;
         horn->cos2gamma1 = 2*cos_g*cos_g - 1;
+
+        // assume 1&2 are separated by exactly 90deg
+        horn->sin2gamma2 = -horn->sin2gamma1;
+        horn->cos2gamma2 = -horn->cos2gamma1;
+    }
+
+    return 0;
+}
+
+int
+ACTpolArrayCoords_update_fast(ACTpolArrayCoords *coords, const ACTpolState *state)
+{
+    const ACTpolArray *array = coords->array;
+
+    Quaternion focalplane_to_BCRS;
+    compute_mean_focalplane_to_BCRS(coords, state, focalplane_to_BCRS);
+
+    Quaternion q0;
+    Quaternion_mul(q0, focalplane_to_BCRS, array->focalplane_q);
+    double r0[3];
+    Quaternion_to_matrix_col3(q0, r0);
+
+    double x0, y0, z02, atan_0, atan_x, atan_y, atan_xx, atan_xy, atan_yy;
+    x0 = r0[0];
+    y0 = r0[1];
+    z02 = x0*x0 + y0*y0;
+    atan_0 = atan2(y0, x0);
+    atan_x = -y0/z02;
+    atan_y = x0/z02;
+    atan_xy = atan_x*atan_x - atan_y*atan_y;
+    atan_xx = atan_x*atan_y;
+    atan_yy = -atan_xx;
+
+    #pragma omp parallel for
+    for (int i = 0; i != array->nhorns; ++i)
+    {
+        Quaternion q;
+        Quaternion_mul(q, focalplane_to_BCRS, array->horn[i].focalplane_q);
+
+        double p1[3], r[3];
+        Quaternion_to_matrix_col1(q, p1);
+        Quaternion_to_matrix_col3(q, r);
+
+        ACTpolFeedhornCoords *horn = coords->horn+i;
+
+        //horn->ra = atan2(r[1], r[0]);
+        double dx = r[0] - x0;
+        double dy = r[1] - y0;
+        horn->ra = atan_0 + (atan_x + atan_xx*dx)*dx + (atan_y + atan_yy*dy)*dy + atan_xy*dx*dy;
+
+        horn->sindec = r[2];
+
+        // w = r x z
+        const double z[3] = {0., 0., 1.};
+        double w[3];
+        vec3_cross_product(w, r, z);
+
+        // n = w x r
+        double n[3];
+        vec3_cross_product(n, w, r);
+
+        double sin_g = vec3_dot_product(p1, w);
+        double cos_g = vec3_dot_product(p1, n);
+        double norm2 = sin_g*sin_g + cos_g*cos_g;
+        horn->sin2gamma1 = 2.*sin_g*cos_g/norm2;
+        horn->cos2gamma1 = 2.*cos_g*cos_g/norm2 - 1.;
 
         // assume 1&2 are separated by exactly 90deg
         horn->sin2gamma2 = -horn->sin2gamma1;
