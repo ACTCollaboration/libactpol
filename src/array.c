@@ -235,8 +235,8 @@ ACTpolArrayCoords_update_fast(ACTpolArrayCoords *coords, const ACTpolState *stat
          * For |p| << 1, atan(p) ~ p/(1 + p^2), the first term of the
          * Euler series expansion of atan.
          *
-         * Approximation appears to be good to ~0.1".
-         * By contrast, 2nd order Taylor expansion is only good to ~10".
+         * Approximation appears to be good to ~0.1". By contrast,
+         * 2nd order Taylor expansion is only good to ~10".
          */
 
         double p = (x0*r[1] - r[0]*y0)/(x0*r[0] + y0*r[1]);
