@@ -1,13 +1,13 @@
 
 #include <assert.h>
-#include <math.h>
 #include <stdlib.h>
 
 #include <slalib.h>
 #include <sofa.h>
 
-#include "actpol/constants.h"
 #include "actpol/astro.h"
+#include "actpol/constants.h"
+#include "actpol/math.h"
 #include "actpol/state.h"
 
 void

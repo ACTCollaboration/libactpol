@@ -1,6 +1,5 @@
 
 #include <assert.h>
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -9,6 +8,7 @@
 
 #include "actpol/astro.h"
 #include "actpol/constants.h"
+#include "actpol/math.h"
 #include "actpol/vec3.h"
 
 #include "iers_bulletin_a.h"

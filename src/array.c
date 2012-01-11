@@ -1,10 +1,10 @@
 
 #include <assert.h>
-#include <math.h>
 #include <stdlib.h>
 
 #include "actpol/array.h"
 #include "actpol/astro.h"
+#include "actpol/math.h"
 #include "actpol/state.h"
 #include "actpol/vec3.h"
 

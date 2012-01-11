@@ -1,12 +1,8 @@
 
 #include <assert.h>
-#include <math.h>
 
+#include "actpol/math.h"
 #include "actpol/quaternion.h"
-
-#ifndef invsqrt
-static double inline invsqrt( double x ) { return 1./sqrt(x); };
-#endif
 
 void
 Quaternion_inv(Quaternion q)

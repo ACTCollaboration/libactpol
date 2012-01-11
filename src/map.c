@@ -1,6 +1,5 @@
 
 #include <assert.h>
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,6 +8,7 @@
 #include <wcslib/wcslib.h>
 
 #include "actpol/map.h"
+#include "actpol/math.h"
 
 static struct wcsprm *
 alloc_wcs()

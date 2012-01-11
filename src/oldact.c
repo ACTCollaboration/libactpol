@@ -1,10 +1,10 @@
 
 #include <assert.h>
-#include <math.h>
 #include <stdlib.h>
 
 #include <slalib.h>
 
+#include "actpol/math.h"
 #include "actpol/oldact.h"
 #include "iers_bulletin_a.h"
 

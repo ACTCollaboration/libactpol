@@ -6,10 +6,8 @@
 
 #pragma once
 
-// get definition of M_PI
-#include <math.h>
 #include "constants.h"
-
+#include "math.h" // for M_PI
 #include "quaternion.h"
 #include "state.h"
 
