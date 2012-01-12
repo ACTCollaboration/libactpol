@@ -232,15 +232,15 @@ ACTpolArrayCoords_update_fast(ACTpolArrayCoords *coords, const ACTpolState *stat
          * Let p = (z - z0)/(1 + z*z0)
          *       = (x0*y - x*y0)/(x*x0 + y*y0).
          *
-         * For |p| << 1, atan(p) ~ p/(1 + p^2), the first term of the
-         * Euler series expansion of atan.
+         * For |p| << 1, atan(p) ~ p/(1 + 0.28*p^2)
+         * (Abramowitz & Stegun, 4.4.48)
          *
-         * Approximation appears to be good to ~0.1". By contrast,
+         * Approximation appears to be good to ~0.01". By contrast,
          * 2nd order Taylor expansion is only good to ~10".
          */
 
         double p = (x0*r[1] - r[0]*y0)/(x0*r[0] + y0*r[1]);
-        double ra1 = p/(1. + p*p);
+        double ra1 = p/(1. + 0.28*p*p);
         horn->ra = ra0 + ra1;
         horn->sindec = r[2];
 
