@@ -26,10 +26,10 @@ libactpol_a_SOURCES = array.c \
 		      state.c
 
 bin_PROGRAMS = actpol_refraction
-actpol_refraction_LDADD = libactpol.a -lcfitsio -lslalib -lsofa_c -lwcs -lzzip -lslim
+actpol_refraction_LDADD = libactpol.a -lcfitsio -lslalib -lsofa_c -lwcs -lzzip -lslim -lm
 
 check_PROGRAMS = test
-test_LDADD = libactpol.a -lcfitsio -lslalib -lsofa_c -lwcs -lzzip -lslim
+test_LDADD = libactpol.a -lcfitsio -lslalib -lsofa_c -lwcs -lzzip -lslim -lm
 TESTS = $(check_PROGRAMS)
 
 #EXTRA_DIST = iers_bulletin_a.dat \
