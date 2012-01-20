@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.62)
-AC_INIT([libactpol], [0.8], [Mike Nolta <mike@nolta.net>])
+AC_INIT([libactpol], [0.9], [Mike Nolta <mike@nolta.net>])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([src/astro.c])
 AC_CONFIG_HEADER([config.h])
@@ -16,9 +16,7 @@ AM_PROG_AR
 AC_PROG_RANLIB
 
 # Checks for libraries.
-# FIXME: Replace `main' with a function in `-lm':
 AC_CHECK_LIB([m], [floor])
-# FIXME: Replace `main' with a function in `-lslalib':
 AC_CHECK_LIB([slalib], [slaDat])
 
 # Checks for header files.
