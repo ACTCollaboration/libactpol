@@ -25,7 +25,7 @@ pro plot_refraction, filename
     oplot_ref, x, 20., 548., 0.0, color=color.red
     oplot_ref, x, 20., 560., 0.0, color=color.red, linestyle=1
 
-    legend, ['"hot & humid" (20 C, 100%)', '"cold & humid" (-20 C, 0%)', $
+    legend, ['"hot & humid" (20 C, 100%)', '"cold & humid" (-20 C, 100%)', $
         '"cold & dry" (-20 C, 0%)', '"hot & dry" (20 C, 0%)'], $
         color=[color.orange, color.green, color.blue, color.red], $
         linestyle=[0,0,0,0], charsize=1.0, /bottom, /left, box=0
