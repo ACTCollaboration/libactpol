@@ -39,7 +39,7 @@ ACTpolArray_init(ACTpolArray *array, double freq_GHz, double focalplane_x, doubl
 
 typedef struct
 {
-    double ra, sindec;
+    double ra, dec, sindec;
     double sin2gamma1, cos2gamma1;
     double sin2gamma2, cos2gamma2;
 }

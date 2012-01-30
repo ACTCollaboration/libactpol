@@ -170,6 +170,7 @@ ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state)
 
         ACTpolFeedhornCoords *horn = coords->horn+i;
         horn->ra = atan2(r[1], r[0]);
+        horn->dec = atan2(r[2], hypot(r[0],r[1]));
         horn->sindec = r[2];
 
         // w = r x z
