@@ -9,6 +9,10 @@
 #include "state.h"
 #include "quaternion.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct
 {
     Quaternion focalplane_q;
