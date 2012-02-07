@@ -1,12 +1,15 @@
 *.[oa]
+*.l[oa]
 *~
 /run_configure
 
 # configure
 /Makefile
 /config.h
+/config.guess
 /config.log
 /config.status
+/config.sub
 /stamp-h1
 /src/.deps/
 /src/Makefile
@@ -26,3 +29,8 @@ Makefile.in
 
 # autoheader
 /config.h.in
+
+# libtool
+/libtool
+/ltmain.sh
+/src/.libs/

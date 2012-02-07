@@ -1,4 +1,5 @@
 
+
 nobase_include_HEADERS = actpol/actpol.h \
 			 actpol/array.h \
 			 actpol/astro.h \
@@ -12,8 +13,8 @@ nobase_include_HEADERS = actpol/actpol.h \
 			 actpol/state.h \
 			 actpol/vec3.h
 
-lib_LIBRARIES = libactpol.a
-libactpol_a_SOURCES = array.c \
+lib_LTLIBRARIES = libactpol.la
+libactpol_la_SOURCES = array.c \
 		      astro.c \
 		      debug.h \
 		      dirfile.c \
@@ -26,10 +27,10 @@ libactpol_a_SOURCES = array.c \
 		      state.c
 
 bin_PROGRAMS = actpol_refraction
-actpol_refraction_LDADD = libactpol.a -lcfitsio -lslalib -lsofa_c -lwcs -lzzip -lslim -lm
+actpol_refraction_LDADD = libactpol.la -lcfitsio -lslalib -lsofa_c -lwcs -lzzip -lslim -lm
 
 check_PROGRAMS = test
-test_LDADD = libactpol.a -lcfitsio -lslalib -lsofa_c -lwcs -lzzip -lslim -lm
+test_LDADD = libactpol.la -lcfitsio -lslalib -lsofa_c -lwcs -lzzip -lslim -lm
 TESTS = $(check_PROGRAMS)
 
 #EXTRA_DIST = iers_bulletin_a.dat \

@@ -6,14 +6,14 @@ AC_INIT([libactpol], [0.9], [Mike Nolta <mike@nolta.net>])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([src/astro.c])
 AC_CONFIG_HEADER([config.h])
+AC_CONFIG_MACRO_DIR([m4])
+LT_INIT
 
 # Checks for programs.
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_CC_C99
 AC_PROG_INSTALL
-AM_PROG_AR
-AC_PROG_RANLIB
 
 # Checks for libraries.
 AC_CHECK_LIB([m], [floor])
