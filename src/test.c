@@ -175,7 +175,7 @@ check_itrs_to_gcrs(double unixtime)
     jd_utc[0] = 2440587.5;
     jd_utc[1] = secs2days(unixtime);
     double mjd_utc = jd2mjd(jd_utc[0]) + jd_utc[1];
-    int stat = get_iers_bulletin_a(mjd_utc, &dut1, &xp, &yp);
+    int stat = actpol_get_iers_bulletin_a(mjd_utc, &dut1, &xp, &yp);
     assert(stat == 0);
     xp = arcsec2rad(xp);
     yp = arcsec2rad(yp);

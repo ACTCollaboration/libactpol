@@ -70,7 +70,7 @@ actpol_rotate_ITRS_to_GCRS(double unixtime, Quaternion q)
     jd_utc[1] = secs2days(unixtime);
 
     double mjd_utc = jd2mjd(jd_utc[0]) + jd_utc[1];
-    stat = get_iers_bulletin_a(mjd_utc, &ut1_minus_utc, &xp, &yp);
+    stat = actpol_get_iers_bulletin_a(mjd_utc, &ut1_minus_utc, &xp, &yp);
     assert(stat == 0);
 
     // utc -> tai

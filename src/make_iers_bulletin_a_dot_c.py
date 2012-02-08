@@ -27,7 +27,7 @@ typedef struct { float x; float y; float dut1; } xyz;
 
 footer = """
 int
-get_iers_bulletin_a( double mjd, double *dut1, double *x, double *y )
+actpol_get_iers_bulletin_a( double mjd, double *dut1, double *x, double *y )
 {
     if ( (mjd_min < mjd) && (mjd < mjd_max) )
     {

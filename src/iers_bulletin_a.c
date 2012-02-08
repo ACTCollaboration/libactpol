@@ -1841,7 +1841,7 @@ static const int mjd_min = 54466;
 static const int mjd_max = 56293;
 
 int
-get_iers_bulletin_a( double mjd, double *dut1, double *x, double *y )
+actpol_get_iers_bulletin_a( double mjd, double *dut1, double *x, double *y )
 {
     if ( (mjd_min < mjd) && (mjd < mjd_max) )
     {

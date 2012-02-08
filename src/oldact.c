@@ -51,7 +51,7 @@ observed_altaz_to_mean_radec( const ACTSite *site, double freq_ghz,
 
     double utc = convert_ctime_to_utc_mjd( ctime[0] );
 
-    stat = get_iers_bulletin_a( utc, &dut1, &x, &y );
+    stat = actpol_get_iers_bulletin_a( utc, &dut1, &x, &y );
     if ( stat != 0 )
         return stat;
 
