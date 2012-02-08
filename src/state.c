@@ -9,6 +9,7 @@
 #include "actpol/constants.h"
 #include "actpol/math.h"
 #include "actpol/state.h"
+#include "actpol/util.h"
 
 void
 ACTpolScan_init(ACTpolScan *scan, double mean_alt, double mean_az, double mean_throw)

@@ -7,6 +7,7 @@
 #include "actpol/math.h"
 #include "actpol/state.h"
 #include "actpol/vec3.h"
+#include "actpol/util.h"
 
 #include "debug.h"
 

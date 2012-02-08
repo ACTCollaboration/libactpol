@@ -11,7 +11,8 @@ nobase_include_HEADERS = actpol/actpol.h \
 			 actpol/oldact.h \
 			 actpol/quaternion.h \
 			 actpol/state.h \
-			 actpol/vec3.h
+			 actpol/vec3.h \
+			 actpol/util.h
 
 lib_LTLIBRARIES = libactpol.la
 libactpol_la_SOURCES = array.c \

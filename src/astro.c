@@ -9,6 +9,7 @@
 #include "actpol/astro.h"
 #include "actpol/constants.h"
 #include "actpol/math.h"
+#include "actpol/util.h"
 #include "actpol/vec3.h"
 
 #include "iers_bulletin_a.h"

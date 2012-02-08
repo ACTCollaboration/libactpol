@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "actpol/actpol.h"
+#include "actpol/util.h"
 
 int
 main(int argc, char *argv[])
