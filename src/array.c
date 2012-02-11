@@ -185,12 +185,8 @@ ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state)
 
         double sin_g = vec3_dot_product(p1, w);
         double cos_g = vec3_dot_product(p1, n);
-        horn->sin2gamma1 = 2*sin_g*cos_g;
-        horn->cos2gamma1 = 2*cos_g*cos_g - 1;
-
-        // assume 1&2 are separated by exactly 90deg
-        horn->sin2gamma2 = -horn->sin2gamma1;
-        horn->cos2gamma2 = -horn->cos2gamma1;
+        horn->sin2gamma = 2*sin_g*cos_g;
+        horn->cos2gamma = 2*cos_g*cos_g - 1;
     }
 
     return 0;
@@ -258,12 +254,8 @@ ACTpolArrayCoords_update_fast(ACTpolArrayCoords *coords, const ACTpolState *stat
         double sin_g = vec3_dot_product(p1, w);
         double cos_g = vec3_dot_product(p1, n);
         double norm2 = sin_g*sin_g + cos_g*cos_g;
-        horn->sin2gamma1 = 2.*sin_g*cos_g/norm2;
-        horn->cos2gamma1 = 2.*cos_g*cos_g/norm2 - 1.;
-
-        // assume 1&2 are separated by exactly 90deg
-        horn->sin2gamma2 = -horn->sin2gamma1;
-        horn->cos2gamma2 = -horn->cos2gamma1;
+        horn->sin2gamma = 2.*sin_g*cos_g/norm2;
+        horn->cos2gamma = 2.*cos_g*cos_g/norm2 - 1.;
     }
 
     return 0;
