@@ -26,6 +26,7 @@ libactpol_la_SOURCES = array.c \
 		      oldact.c \
 		      quaternion.c \
 		      state.c
+libactpol_la_LIBADD = -lcfitsio -lslalib -lsofa_c -lwcs -lzzip -lslim -lm
 
 bin_PROGRAMS = actpol_refraction
 actpol_refraction_LDADD = libactpol.la -lcfitsio -lslalib -lsofa_c -lwcs -lzzip -lslim -lm
