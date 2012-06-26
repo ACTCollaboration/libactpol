@@ -105,7 +105,7 @@ ACTpolArrayCoords_update_refraction(ACTpolArrayCoords *coords,
         coords->mean_ref += coords->ref[i];
     }
     coords->mean_ref /= coords->array->nhorns;
-    DEBUG("mean_ref = %g\"\n", rad2arcsec(coords->mean_ref));
+    //DEBUG("mean_ref = %g\"\n", rad2arcsec(coords->mean_ref));
 }
 
 static void

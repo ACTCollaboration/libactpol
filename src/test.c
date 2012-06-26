@@ -292,9 +292,58 @@ test_astro(void)
     ACTpolArray_free(array);
 }
 
+void
+test_astro2(void)
+{
+    Quaternion q, q1, q2, q3, q4;
+    double alt=deg2rad(44.), az=deg2rad(128.), r[3], rp[3];
+    double unixtime0 = 1337758400.;
+    double mat[3][3], ra, dec, freq_GHz=150.;
+    ACTpolWeather weather;
+    ACTpolWeather_default(&weather);
+
+    check_focalplane_to_NWU(alt, az);
+    check_horizon_to_itrs(alt, az);
+    check_itrs_to_gcrs(unixtime0);
+
+    ACTpolArray *array = ACTpolArray_alloc(1);
+    ACTpolArray_init(array, freq_GHz, 0., 0.);
+    ACTpolFeedhorn_init(array->horn, 0., 0., 0.);
+    ACTpolArrayCoords *coords = ACTpolArrayCoords_alloc(array);
+    ACTpolArrayCoords_init(coords);
+    ACTpolState *state = ACTpolState_alloc();
+    ACTpolState_init(state);
+    ACTpolScan scan;
+    ACTpolScan_init(&scan, alt, az, 5.);
+    ACTpolArrayCoords_update_refraction(coords, &scan, &weather);
+
+    ACTSite site;
+    ACTSite_init(&site);
+    double tol = arcsec2rad(0.05);
+
+    for (int j = 0; j < 10; j++)
+    {
+        double unixtime = unixtime0 + 240.*j;
+        ACTpolState_update(state, unixtime, alt, az);
+        ACTpolArrayCoords_update_fast(coords, state);
+        //printf("noltaq ra, sin(dec) = %.8g, %.8g\n", rad2deg(coords->horn[0].ra), coords->horn[0].sindec);
+
+        observed_altaz_to_mean_radec( &site, freq_GHz, 1, &unixtime, &alt, &az, &ra, &dec );
+        //printf("slalib ra, sin(dec) = %.8g, %.8g\n", rad2deg(ra), sin(dec));
+        assert(fabs(sin(coords->horn[0].ra) - sin(ra)) < tol);
+        assert(fabs(cos(coords->horn[0].ra) - cos(ra)) < tol);
+        assert(fabs(coords->horn[0].sindec - sin(dec)) < tol);
+    }
+
+    ACTpolState_free(state);
+    ACTpolArrayCoords_free(coords);
+    ACTpolArray_free(array);
+}
+
 int
 main(int argc, char *argv[])
 {
+    test_astro2();
     test_astro();
     test_map();
     return 0;

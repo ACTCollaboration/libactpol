@@ -173,10 +173,19 @@ void
 QuaternionSlerp_init(QuaternionSlerp *slerp, const Quaternion a, const Quaternion b)
 {
     double cos_alpha = a[0]*b[0] + a[1]*b[1] + a[2]*b[2] + a[3]*b[3];
-    slerp->alpha = acos(cos_alpha);
     slerp->sin_alpha = sqrt(1. - cos_alpha*cos_alpha);
     Quaternion_copy(slerp->q0, a);
     Quaternion_copy(slerp->q1, b);
+
+    if (cos_alpha < 0.) {
+        slerp->alpha = acos(-cos_alpha);
+        slerp->q1[0] = -slerp->q1[0];
+        slerp->q1[1] = -slerp->q1[1];
+        slerp->q1[2] = -slerp->q1[2];
+        slerp->q1[3] = -slerp->q1[3];
+    } else {
+        slerp->alpha = acos(cos_alpha);
+    }
 }
 
 void
