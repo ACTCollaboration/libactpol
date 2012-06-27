@@ -81,6 +81,9 @@ ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state);
 int
 ACTpolArrayCoords_update_fast(ACTpolArrayCoords *coords, const ACTpolState *state);
 
+ACTpolFeedhornCoords *
+ACTpolArrayCoords_get_feedhorn_coords(ACTpolArrayCoords *coords, int i);
+
 #ifdef __cplusplus
 }
 #endif

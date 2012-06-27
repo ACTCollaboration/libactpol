@@ -87,6 +87,13 @@ ACTpolArrayCoords_init(ACTpolArrayCoords *coords)
     coords->mean_ref = arcsec2rad(30.);
 }
 
+ACTpolFeedhornCoords *
+ACTpolArrayCoords_get_feedhorn_coords(ACTpolArrayCoords *coords, int i)
+{
+    assert(i >= 0 && i < coords->array->nhorns);
+    return coords->horn + i;
+}
+
 void
 ACTpolArrayCoords_update_refraction(ACTpolArrayCoords *coords,
     const ACTpolScan *scan, const ACTpolWeather *weather)
