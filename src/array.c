@@ -56,6 +56,13 @@ ACTpolArray_init(ACTpolArray *array, double freq_GHz, double focalplane_x, doubl
         focalplane_y, 0., array->focalplane_q);
 }
 
+ACTpolFeedhorn *
+ACTpolArray_get_feedhorn(ACTpolArray *array, int i)
+{
+    assert(i >= 0 && i < array->nhorns);
+    return array->horn + i;
+}
+
 ACTpolArrayCoords *
 ACTpolArrayCoords_alloc(const ACTpolArray *array)
 {

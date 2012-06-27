@@ -41,6 +41,9 @@ ACTpolArray_free(ACTpolArray *array);
 void
 ACTpolArray_init(ACTpolArray *array, double freq_GHz, double focalplane_x, double focalplane_y);
 
+ACTpolFeedhorn *
+ACTpolArray_get_feedhorn(ACTpolArray *array, int i);
+
 typedef struct
 {
     double ra, dec, sindec;
