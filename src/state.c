@@ -11,12 +11,28 @@
 #include "actpol/state.h"
 #include "actpol/util.h"
 
+ACTpolScan *
+ACTpolScan_alloc(void)
+{
+    ACTpolScan *scan = (ACTpolScan *)malloc(sizeof(ACTpolScan));
+    assert(scan);
+    return scan;
+}
+
 void
 ACTpolScan_init(ACTpolScan *scan, double mean_alt, double mean_az, double mean_throw)
 {
     scan->mean_alt = mean_alt;
     scan->mean_az = mean_az;
     scan->mean_throw = mean_throw;
+}
+
+ACTpolWeather *
+ACTpolWeather_alloc(void)
+{
+    ACTpolWeather *weather = (ACTpolWeather *)malloc(sizeof(ACTpolWeather));
+    assert(weather);
+    return weather;
 }
 
 void

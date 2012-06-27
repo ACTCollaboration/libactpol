@@ -20,6 +20,9 @@ typedef struct
 }
 ACTpolScan;
 
+ACTpolScan *
+ACTpolScan_alloc(void);
+
 void
 ACTpolScan_init(ACTpolScan *scan, double mean_alt, double mean_az, double mean_throw);
 
@@ -31,6 +34,9 @@ typedef struct
     double tropospheric_lapse_rate_K_per_m;
 }
 ACTpolWeather;
+
+ACTpolWeather *
+ACTpolWeather_alloc(void);
 
 void
 ACTpolWeather_default(ACTpolWeather *weather);
