@@ -132,36 +132,6 @@ Quaternion_to_matrix(const Quaternion q, double mat[3][3])
 }
 
 void
-Quaternion_to_matrix_col1(const Quaternion u, double col1[3])
-{
-    // make sure quaternion is normalized before calling
-    double a2 = u[0]*u[0], b2 = u[1]*u[1], c2 = u[2]*u[2], d2 = u[3]*u[3];
-    col1[0] = a2 + b2 - c2 - d2;
-    col1[1] = 2.*(u[1]*u[2] + u[0]*u[3]);
-    col1[2] = 2.*(u[1]*u[3] - u[0]*u[2]);
-}
-
-void
-Quaternion_to_matrix_col2(const Quaternion u, double col2[3])
-{
-    // make sure quaternion is normalized before calling
-    double a2 = u[0]*u[0], b2 = u[1]*u[1], c2 = u[2]*u[2], d2 = u[3]*u[3];
-    col2[0] = 2.*(u[1]*u[2] - u[0]*u[3]);
-    col2[1] = a2 - b2 + c2 - d2;
-    col2[2] = 2.*(u[2]*u[3] + u[0]*u[1]);
-}
-
-void
-Quaternion_to_matrix_col3(const Quaternion u, double col3[3])
-{
-    // make sure quaternion is normalized before calling
-    double a2 = u[0]*u[0], b2 = u[1]*u[1], c2 = u[2]*u[2], d2 = u[3]*u[3];
-    col3[0] = 2.*(u[1]*u[3] + u[0]*u[2]);
-    col3[1] = 2.*(u[2]*u[3] - u[0]*u[1]);
-    col3[2] = a2 - b2 - c2 + d2;
-}
-
-void
 Quaternion_unit(Quaternion q)
 {
     double norm2 = Quaternion_norm2(q);
