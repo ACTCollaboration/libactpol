@@ -25,7 +25,7 @@ ACTpolFeedhorn_init(ACTpolFeedhorn *feedhorn, double focalplane_x,
 
 typedef struct
 {
-    ACTpolFeedhorn *horn;
+    ACTpolFeedhorn *horn __attribute__ ((aligned (32)));
     int nhorns;
     double freq_GHz;
     Quaternion focalplane_q;

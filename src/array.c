@@ -1,5 +1,6 @@
 
 #include <assert.h>
+#include <malloc.h>
 #include <stdlib.h>
 
 #include "actpol/array.h"
@@ -36,7 +37,7 @@ ACTpolArray_alloc(int nhorns)
     array = (ACTpolArray *)malloc(sizeof(ACTpolArray));
     assert(array);
     array->nhorns = nhorns;
-    array->horn = (ACTpolFeedhorn *)malloc(nhorns*sizeof(ACTpolFeedhorn));
+    array->horn = (ACTpolFeedhorn *)memalign(32, nhorns*sizeof(ACTpolFeedhorn));
     assert(array->horn);
     return array;
 }
