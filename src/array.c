@@ -269,8 +269,13 @@ ACTpolArrayCoords_update_fast(ACTpolArrayCoords *coords, const ACTpolState *stat
         double sin_g = vec3_dot_product(p1, w);
         double cos_g = vec3_dot_product(p1, n);
         double norm2 = sin_g*sin_g + cos_g*cos_g;
+        /*
         horn->sin2gamma = 2.*sin_g*cos_g/norm2;
         horn->cos2gamma = 2.*cos_g*cos_g/norm2 - 1.;
+        */
+        double two_cos_g_div_norm2 = 2.*cos_g/norm2;
+        horn->sin2gamma = sin_g*two_cos_g_div_norm2;
+        horn->cos2gamma = cos_g*two_cos_g_div_norm2 - 1.;
     }
 
     return 0;
