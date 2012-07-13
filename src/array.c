@@ -252,8 +252,11 @@ ACTpolArrayCoords_update_fast(ACTpolArrayCoords *coords, const ACTpolState *stat
          * 2nd order Taylor expansion is only good to ~10".
          */
 
-        double p = (x0*r[1] - r[0]*y0)/(x0*r[0] + y0*r[1]);
-        double ra1 = p/(1. + 0.28*p*p);
+        //double p = (x0*r[1] - r[0]*y0)/(x0*r[0] + y0*r[1]);
+        //double ra1 = p/(1. + 0.28*p*p);
+        double pn = x0*r[1] - r[0]*y0;
+        double pd = x0*r[0] + y0*r[1];
+        double ra1 = (pn*pd)/(pd*pd + 0.28*pn*pn);
         horn->ra = ra0 + ra1;
         horn->sindec = r[2];
 
