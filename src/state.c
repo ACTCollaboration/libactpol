@@ -100,28 +100,10 @@ ACTpolState_update_boresight(ACTpolState *state, double boresight_alt, double bo
 }
 
 static void
-ACTpolState_tt_jd(const ACTpolState *state, double jd_tt[2])
-{
-    double jd_utc[2], jd_tai[2];
-    int stat;
-
-    jd_utc[0] = UNIX_JD_EPOCH;
-    jd_utc[1] = secs2days(state->unixtime);
-
-    // utc -> tai
-    stat = iauUtctai(jd_utc[0], jd_utc[1], jd_tai+0, jd_tai+1);
-    assert(stat == 0);
-
-    // tai -> tt
-    stat = iauTaitt(jd_tai[0], jd_tai[1], jd_tt+0, jd_tt+1);
-    assert(stat == 0);
-}
-
-static void
 ACTpolState_update_earth_orbital_velocity(ACTpolState *state)
 {
     double jd_tdb[2];
-    ACTpolState_tt_jd(state, jd_tdb); // tt ~ tdb
+    actpol_unixtime_to_jd_tt(state->unixtime, jd_tdb); // tt ~ tdb
     actpol_earth_orbital_beta(jd_tdb, state->earth_orbital_beta);
     state->eob_unixtime = state->unixtime;
 }

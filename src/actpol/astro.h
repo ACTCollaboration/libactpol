@@ -38,6 +38,9 @@ void
 actpol_diurnal_aberration(const double r[3], Quaternion q);
 
 void
+actpol_unixtime_to_jd_tt(double unixtime, double jd_tt[2]);
+
+void
 actpol_earth_orbital_beta(const double jd_tdb[2], double beta[3]);
 
 void

@@ -38,6 +38,24 @@ actpol_diurnal_aberration(const double r[3], Quaternion q)
 }
 
 void
+actpol_unixtime_to_jd_tt(double unixtime, double jd_tt[2])
+{
+    double jd_utc[2], jd_tai[2];
+    int stat;
+
+    jd_utc[0] = UNIX_JD_EPOCH;
+    jd_utc[1] = secs2days(unixtime);
+
+    // utc -> tai
+    stat = iauUtctai(jd_utc[0], jd_utc[1], jd_tai+0, jd_tai+1);
+    assert(stat == 0);
+
+    // tai -> tt
+    stat = iauTaitt(jd_tai[0], jd_tai[1], jd_tt+0, jd_tt+1);
+    assert(stat == 0);
+}
+
+void
 actpol_earth_orbital_beta(const double jd_tdb[2], double beta[3])
 {
     double pvb[2][3];
