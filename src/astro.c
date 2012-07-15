@@ -138,3 +138,73 @@ actpol_NWU_to_GCRS_rotation(double unixtime, Quaternion q)
     actpol_rotate_ITRS_to_GCRS(unixtime, q);
 }
 
+int
+actpol_altaz_to_radec(const ACTpolWeather *weather, double freq_GHz, double unixtime, double alt, double az, double *ra, double *dec)
+{
+    double r[3];
+    double mat[3][3];
+    double jd_tt[2];
+
+    Quaternion focalplane_to_topo;
+    Quaternion diurnal_aberration, focalplane_to_apparent;
+    Quaternion focalplane_to_GCRS, NWU_to_GCRS;
+    Quaternion GCRS_to_BCRS;
+    Quaternion focalplane_to_BCRS;
+
+    double ref = actpol_refraction(weather, freq_GHz, alt);
+
+    // focalplane -> topo
+    Quaternion_identity(focalplane_to_topo);
+    actpol_rotate_focalplane_to_NWU(alt-ref, az, focalplane_to_topo);
+
+    // diurnal aberration
+    Quaternion_unit(focalplane_to_topo);
+    Quaternion_to_matrix_col3(focalplane_to_topo, r);
+    actpol_diurnal_aberration(r, diurnal_aberration);
+    Quaternion_mul(focalplane_to_apparent, diurnal_aberration, focalplane_to_topo);
+
+    // focalplane -> GCRS
+    actpol_NWU_to_GCRS_rotation(unixtime, NWU_to_GCRS);
+    Quaternion_mul(focalplane_to_GCRS, NWU_to_GCRS, focalplane_to_apparent);
+
+    // center of array in GCRS
+    Quaternion_unit(focalplane_to_GCRS);
+    Quaternion_to_matrix_col3(focalplane_to_GCRS, r);
+
+    // annual aberration correction
+    actpol_unixtime_to_jd_tt(unixtime, jd_tt);
+    actpol_annual_aberration(jd_tt, r, GCRS_to_BCRS);
+    Quaternion_mul(focalplane_to_BCRS, GCRS_to_BCRS, focalplane_to_GCRS);
+
+    Quaternion_conj(focalplane_to_BCRS); // transpose mat
+    Quaternion_to_matrix(focalplane_to_BCRS, mat);
+    double *rr = mat[2];
+    *ra = atan2(rr[1], rr[0]);
+    *dec = atan2(rr[2], hypot(rr[0],rr[1]));
+
+    return 0;
+}
+
+int
+actpol_radec_to_crude_altaz(double unixtime, double ra, double dec, double *alt, double *az)
+{
+    Quaternion NWU_to_GCRS;
+    double mat[3][3];
+    double r[3], p[3];
+
+    p[0] = cos(dec)*cos(ra);
+    p[1] = cos(dec)*sin(ra);
+    p[2] = sin(dec);
+
+    actpol_NWU_to_GCRS_rotation(unixtime, NWU_to_GCRS);
+    Quaternion_conj(NWU_to_GCRS); // transpose mat
+    Quaternion_to_matrix(NWU_to_GCRS, mat);
+
+    matrix_times_vec3(r, mat, p);
+
+    *az = -atan2(r[1], r[0]);
+    *alt = atan2(r[2], hypot(r[0],r[1]));
+
+    return 0;
+}
+

@@ -239,7 +239,7 @@ void
 test_astro(void)
 {
     Quaternion q, q1, q2, q3, q4;
-    double alt=deg2rad(45.), az=deg2rad(123.), r[3], rp[3];
+    double alt=deg2rad(45.), az=deg2rad(123.), r[3], rp[3], alt2, az2;
     double unixtime = 1327019150.9773691;
     double mat[3][3], ra, dec, freq_GHz=150.;
     ACTpolWeather weather;
@@ -286,6 +286,22 @@ test_astro(void)
     assert(fabs(coords->horn[0].ra - ra) < tol);
     //assert(fabs(coords->horn[0].dec - dec) < tol);
     assert(fabs(coords->horn[0].sindec - sin(dec)) < tol);
+
+    tol = 1e-15;
+    actpol_altaz_to_radec(&weather, freq_GHz, unixtime, alt, az, &ra, &dec);
+    printf("actpol ra, sin(dec) = %.8g, %.8g\n", rad2deg(ra), sin(dec));
+    assert(fabs(coords->horn[0].ra - ra) < tol);
+    assert(fabs(coords->horn[0].sindec - sin(dec)) < tol);
+
+    tol = deg2rad(0.01);
+    for (int i = 0; i < 10; i++) {
+        actpol_altaz_to_radec(&weather, freq_GHz, unixtime, alt, az, &ra, &dec);
+        actpol_radec_to_crude_altaz(unixtime, ra, dec, &alt2, &az2);
+        assert(fabs(alt - alt2) < tol);
+        assert(fabs(az - az2) < tol);
+        alt += deg2rad(2);
+        az += deg2rad(2);
+    }
 
     ACTpolState_free(state);
     ACTpolArrayCoords_free(coords);
