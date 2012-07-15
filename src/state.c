@@ -120,14 +120,9 @@ ACTpolState_tt_jd(const ACTpolState *state, double jd_tt[2])
 static void
 ACTpolState_update_earth_orbital_velocity(ACTpolState *state)
 {
-    double jd_tdb[2], pvb[2][3];
-
+    double jd_tdb[2];
     ACTpolState_tt_jd(state, jd_tdb); // tt ~ tdb
-    iauEpv00(jd_tdb[0], jd_tdb[1], pvb, pvb);
-
-    for (int i = 0; i < 3; i++)
-        state->earth_orbital_beta[i] = pvb[1][i]/SPEED_OF_LIGHT_AU_PER_D;
-
+    actpol_earth_orbital_beta(jd_tdb, state->earth_orbital_beta);
     state->eob_unixtime = state->unixtime;
 }
 

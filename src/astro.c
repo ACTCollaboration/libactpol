@@ -38,13 +38,19 @@ actpol_diurnal_aberration(const double r[3], Quaternion q)
 }
 
 void
-actpol_annual_aberration(const double jd_tdb[2], const double r[3], Quaternion q)
+actpol_earth_orbital_beta(const double jd_tdb[2], double beta[3])
 {
     double pvb[2][3];
     iauEpv00(jd_tdb[0], jd_tdb[1], pvb, pvb);
-    double beta[3];
     for (int i = 0; i < 3; i++)
         beta[i] = pvb[1][i]/SPEED_OF_LIGHT_AU_PER_D;
+}
+
+void
+actpol_annual_aberration(const double jd_tdb[2], const double r[3], Quaternion q)
+{
+    double beta[3];
+    actpol_earth_orbital_beta(jd_tdb, beta);
     actpol_aberration(r, beta, q);
 }
 

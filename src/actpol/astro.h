@@ -38,6 +38,9 @@ void
 actpol_diurnal_aberration(const double r[3], Quaternion q);
 
 void
+actpol_earth_orbital_beta(const double jd_tdb[2], double beta[3]);
+
+void
 actpol_annual_aberration(const double jd_tdb[2], const double r[3], Quaternion q);
 
 void
