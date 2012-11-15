@@ -335,7 +335,7 @@ test_astro2(void)
 
     ACTSite site;
     ACTSite_init(&site);
-    double tol = arcsec2rad(0.05);
+    double tol = arcsec2rad(0.06);
 
     for (int j = 0; j < 10; j++)
     {
