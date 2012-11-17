@@ -18,6 +18,8 @@ AC_PROG_INSTALL
 # Checks for libraries.
 AC_CHECK_LIB([m], [floor])
 AC_CHECK_LIB([slalib], [slaDat])
+AC_CHECK_LIB([sofa_c], [iauUtctai])
+AC_CHECK_LIB([wcs], [wcsini])
 
 # Checks for header files.
 AC_HEADER_STDC
@@ -32,6 +34,10 @@ AC_OPENMP
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([floor modf pow sqrt])
+
+# Turn off dirfile support
+AC_ARG_ENABLE([dirfile], AS_HELP_STRING([--disable-dirfile], [Disable dirfile support]))
+AM_CONDITIONAL([DIRFILE], [test "x$enable_dirfile" != "xno"])
 
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT
