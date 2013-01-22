@@ -20,6 +20,7 @@ AC_CHECK_LIB([m], [floor])
 AC_CHECK_LIB([slalib], [slaDat])
 AC_CHECK_LIB([sofa_c], [iauUtctai])
 AC_CHECK_LIB([wcs], [wcsini])
+AC_CHECK_LIB([cfitsio], [ffopen])
 
 # Checks for header files.
 AC_HEADER_STDC
