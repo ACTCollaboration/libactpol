@@ -8,11 +8,10 @@
 
 #include "actpol/astro.h"
 #include "actpol/constants.h"
+#include "actpol/iers_bulletin_a.h"
 #include "actpol/math.h"
 #include "actpol/util.h"
 #include "actpol/vec3.h"
-
-#include "iers_bulletin_a.h"
 
 void
 actpol_aberration(const double u[3], const double beta[3], Quaternion q)

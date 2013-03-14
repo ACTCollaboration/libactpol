@@ -8,12 +8,11 @@
 #include <wcslib/wcslib.h>
 
 #include "actpol/actpol.h"
+#include "actpol/iers_bulletin_a.h"
 #include "actpol/math.h"
 #include "actpol/oldact.h"
 #include "actpol/vec3.h"
 #include "actpol/util.h"
-
-#include "iers_bulletin_a.h"
 
 #define TEST_FILENAME "/tmp/libactpol_test_map.fits";
 

@@ -3,6 +3,7 @@ nobase_include_HEADERS = actpol/actpol.h \
                          actpol/array.h \
                          actpol/astro.h \
                          actpol/constants.h \
+                         actpol/iers_bulletin_a.h \
                          actpol/map.h \
                          actpol/math.h \
                          actpol/oldact.h \
@@ -16,7 +17,6 @@ libactpol_la_SOURCES = array.c \
                        astro.c \
                        debug.h \
                        iers_bulletin_a.c \
-                       iers_bulletin_a.h \
                        map.c \
                        oldact.c \
                        quaternion.c \
