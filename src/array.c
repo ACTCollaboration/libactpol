@@ -170,6 +170,9 @@ ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state)
 
     Quaternion focalplane_to_BCRS;
     compute_mean_focalplane_to_BCRS(coords, state, focalplane_to_BCRS);
+#ifdef ACTPOL_GALACTIC_COORDS
+    actpol_rotate_ICRS_to_galactic(focalplane_to_BCRS);
+#endif
 
     #pragma omp parallel for
     for (int i = 0; i != array->nhorns; ++i)
@@ -185,9 +188,14 @@ ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state)
         double *r = mat[2];
 
         ACTpolFeedhornCoords *horn = coords->horn+i;
+#ifdef ACTPOL_GALACTIC_COORDS
+        horn->gl = atan2(r[1], r[0]);
+        horn->gb = atan2(r[2], hypot(r[0],r[1]));
+#else
         horn->ra = atan2(r[1], r[0]);
         horn->dec = atan2(r[2], hypot(r[0],r[1]));
         horn->sindec = r[2];
+#endif
 
         // w = r x z
         double w[3], z[3] = {0, 0, 1};
@@ -217,6 +225,10 @@ ACTpolArrayCoords_update_fast(ACTpolArrayCoords *coords, const ACTpolState *stat
 
     Quaternion q0;
     Quaternion_mul(q0, focalplane_to_BCRS, array->focalplane_q);
+#ifdef ACTPOL_GALACTIC_COORDS
+    actpol_rotate_ICRS_to_galactic(focalplane_to_BCRS);
+#endif
+
     double r0[3];
     Quaternion_to_matrix_col3(q0, r0);
 
@@ -257,8 +269,13 @@ ACTpolArrayCoords_update_fast(ACTpolArrayCoords *coords, const ACTpolState *stat
         double pn = x0*r[1] - r[0]*y0;
         double pd = x0*r[0] + y0*r[1];
         double ra1 = (pn*pd)/(pd*pd + 0.28*pn*pn);
+#ifdef ACTPOL_GALACTIC_COORDS
+        horn->gl = ra0 + ra1;
+        horn->gb = atan2(r[2], hypot(r[0],r[1]));
+#else
         horn->ra = ra0 + ra1;
         horn->sindec = r[2];
+#endif
 
         // w = r x z
         const double z[3] = {0., 0., 1.};

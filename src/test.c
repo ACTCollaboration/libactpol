@@ -292,6 +292,11 @@ test_astro(void)
     assert(fabs(coords->horn[0].ra - ra) < tol);
     assert(fabs(coords->horn[0].sindec - sin(dec)) < tol);
 
+    double gl, gb;
+    actpol_altaz_to_galactic(&weather, freq_GHz, unixtime, alt, az, &gl, &gb);
+    printf("               %.8g, %.8g\n", rad2deg(ra), rad2deg(dec));
+    printf("galactic l,b = %.8g, %.8g\n", rad2deg(gl), rad2deg(gb));
+
     tol = deg2rad(0.01);
     for (int i = 0; i < 10; i++) {
         actpol_altaz_to_radec(&weather, freq_GHz, unixtime, alt, az, &ra, &dec);

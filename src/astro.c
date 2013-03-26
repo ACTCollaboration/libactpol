@@ -130,6 +130,16 @@ actpol_rotate_ITRS_to_GCRS(double unixtime, Quaternion q)
 }
 
 void
+actpol_rotate_ICRS_to_galactic(Quaternion q)
+{
+    // Eqn (19) from Liu, Zhu, & Zhang (2011), A&A, 526, A16
+    // http://dx.doi.org/10.1051/0004-6361/201014961
+    Quaternion_r3_mul(-deg2rad(192.85947787499998), q);
+    Quaternion_r2_mul(-deg2rad(90. - 27.128252416666665), q);
+    Quaternion_r3_mul(-deg2rad(180. - 122.93192526), q);
+}
+
+void
 actpol_NWU_to_GCRS_rotation(double unixtime, Quaternion q)
 {
     Quaternion_identity(q);
@@ -138,17 +148,15 @@ actpol_NWU_to_GCRS_rotation(double unixtime, Quaternion q)
 }
 
 int
-actpol_altaz_to_radec(const ACTpolWeather *weather, double freq_GHz, double unixtime, double alt, double az, double *ra, double *dec)
+actpol_altaz_to_ICRS(const ACTpolWeather *weather, double freq_GHz, double unixtime, double alt, double az, Quaternion q)
 {
     double r[3];
-    double mat[3][3];
     double jd_tt[2];
 
     Quaternion focalplane_to_topo;
     Quaternion diurnal_aberration, focalplane_to_apparent;
     Quaternion focalplane_to_GCRS, NWU_to_GCRS;
     Quaternion GCRS_to_BCRS;
-    Quaternion focalplane_to_BCRS;
 
     double ref = actpol_refraction(weather, freq_GHz, alt);
 
@@ -173,13 +181,44 @@ actpol_altaz_to_radec(const ACTpolWeather *weather, double freq_GHz, double unix
     // annual aberration correction
     actpol_unixtime_to_jd_tt(unixtime, jd_tt);
     actpol_annual_aberration(jd_tt, r, GCRS_to_BCRS);
-    Quaternion_mul(focalplane_to_BCRS, GCRS_to_BCRS, focalplane_to_GCRS);
+    Quaternion_mul(q, GCRS_to_BCRS, focalplane_to_GCRS);
 
-    Quaternion_conj(focalplane_to_BCRS); // transpose mat
-    Quaternion_to_matrix(focalplane_to_BCRS, mat);
+    return 0;
+}
+
+int
+actpol_altaz_to_radec(const ACTpolWeather *weather, double freq_GHz,
+        double unixtime, double alt, double az, double *ra, double *dec)
+{
+    Quaternion focalplane_to_ICRS;
+    actpol_altaz_to_ICRS(weather, freq_GHz, unixtime, alt, az, focalplane_to_ICRS);
+
+    double mat[3][3];
+    Quaternion_conj(focalplane_to_ICRS); // transpose matrix
+    Quaternion_to_matrix(focalplane_to_ICRS, mat);
+
     double *rr = mat[2];
     *ra = atan2(rr[1], rr[0]);
     *dec = atan2(rr[2], hypot(rr[0],rr[1]));
+
+    return 0;
+}
+
+int
+actpol_altaz_to_galactic(const ACTpolWeather *weather, double freq_GHz,
+        double unixtime, double alt, double az, double *gl, double *gb)
+{
+    Quaternion q;
+    actpol_altaz_to_ICRS(weather, freq_GHz, unixtime, alt, az, q);
+    actpol_rotate_ICRS_to_galactic(q);
+
+    double mat[3][3];
+    Quaternion_conj(q); // transpose matrix
+    Quaternion_to_matrix(q, mat);
+
+    double *rr = mat[2];
+    *gl = atan2(rr[1], rr[0]);
+    *gb = atan2(rr[2], hypot(rr[0],rr[1]));
 
     return 0;
 }

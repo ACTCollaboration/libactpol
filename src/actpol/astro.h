@@ -53,10 +53,17 @@ void
 actpol_rotate_ITRS_to_GCRS(double unixtime, Quaternion q);
 
 void
+actpol_rotate_ICRS_to_galactic(Quaternion q);
+
+void
 actpol_NWU_to_GCRS_rotation(double unixtime, Quaternion q);
 
 int
 actpol_altaz_to_radec(const ACTpolWeather *weather, double freq_GHz, double unixtime, double alt, double az, double *ra, double *dec);
+
+int
+actpol_altaz_to_galactic(const ACTpolWeather *weather, double freq_GHz,
+        double unixtime, double alt, double az, double *gl, double *gb);
 
 int
 actpol_radec_to_crude_altaz(double unixtime, double ra, double dec, double *alt, double *az);

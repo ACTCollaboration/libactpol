@@ -46,7 +46,11 @@ ACTpolArray_get_feedhorn(ACTpolArray *array, int i);
 
 typedef struct
 {
+#ifdef ACTPOL_GALACTIC_COORDS
+    double gl, gb;
+#else
     double ra, dec, sindec;
+#endif
     double sin2gamma, cos2gamma;
 }
 ACTpolFeedhornCoords;
