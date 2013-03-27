@@ -266,7 +266,7 @@ test_astro(void)
     ACTpolArray_init(array, freq_GHz, 0., 0.);
     ACTpolFeedhorn_init(array->horn, 0., 0., 0.);
     ACTpolArrayCoords *coords = ACTpolArrayCoords_alloc(array);
-    ACTpolArrayCoords_init(coords);
+    ACTpolArrayCoords_init(coords, ACTPOL_COORDSYS_RA_SINDEC);
     ACTpolState *state = ACTpolState_alloc();
     ACTpolState_init(state);
     ACTpolState_update(state, unixtime, alt, az);
@@ -274,7 +274,7 @@ test_astro(void)
     ACTpolScan_init(&scan, alt, az, 5.);
     ACTpolArrayCoords_update_refraction(coords, &scan, &weather);
     ACTpolArrayCoords_update(coords, state);
-    printf("noltaq ra, sin(dec) = %.8g, %.8g\n", rad2deg(coords->horn[0].ra), coords->horn[0].sindec);
+    printf("noltaq ra, sin(dec) = %.8g, %.8g\n", rad2deg(coords->horn[0].a), coords->horn[0].b);
 
     ACTSite site;
     ACTSite_init(&site);
@@ -282,15 +282,14 @@ test_astro(void)
     printf("slalib ra, sin(dec) = %.8g, %.8g\n", rad2deg(ra), sin(dec));
 
     double tol = arcsec2rad(0.05);
-    assert(fabs(coords->horn[0].ra - ra) < tol);
-    //assert(fabs(coords->horn[0].dec - dec) < tol);
-    assert(fabs(coords->horn[0].sindec - sin(dec)) < tol);
+    assert(fabs(coords->horn[0].a - ra) < tol);
+    assert(fabs(coords->horn[0].b - sin(dec)) < tol);
 
     tol = 1e-15;
     actpol_altaz_to_radec(&weather, freq_GHz, unixtime, alt, az, &ra, &dec);
     printf("actpol ra, sin(dec) = %.8g, %.8g\n", rad2deg(ra), sin(dec));
-    assert(fabs(coords->horn[0].ra - ra) < tol);
-    assert(fabs(coords->horn[0].sindec - sin(dec)) < tol);
+    assert(fabs(coords->horn[0].a - ra) < tol);
+    assert(fabs(coords->horn[0].b - sin(dec)) < tol);
 
     double gl, gb;
     actpol_altaz_to_galactic(&weather, freq_GHz, unixtime, alt, az, &gl, &gb);
@@ -330,7 +329,7 @@ test_astro2(void)
     ACTpolArray_init(array, freq_GHz, 0., 0.);
     ACTpolFeedhorn_init(array->horn, 0., 0., 0.);
     ACTpolArrayCoords *coords = ACTpolArrayCoords_alloc(array);
-    ACTpolArrayCoords_init(coords);
+    ACTpolArrayCoords_init(coords, ACTPOL_COORDSYS_RA_SINDEC);
     ACTpolState *state = ACTpolState_alloc();
     ACTpolState_init(state);
     ACTpolScan scan;
@@ -345,15 +344,46 @@ test_astro2(void)
     {
         double unixtime = unixtime0 + 240.*j;
         ACTpolState_update(state, unixtime, alt, az);
-        ACTpolArrayCoords_update_fast(coords, state);
-        //printf("noltaq ra, sin(dec) = %.8g, %.8g\n", rad2deg(coords->horn[0].ra), coords->horn[0].sindec);
+        ACTpolArrayCoords_update(coords, state);
+        //printf("noltaq ra, sin(dec) = %.8g, %.8g\n", rad2deg(coords->horn[0].a), coords->horn[0].b);
 
         observed_altaz_to_mean_radec( &site, freq_GHz, 1, &unixtime, &alt, &az, &ra, &dec );
         //printf("slalib ra, sin(dec) = %.8g, %.8g\n", rad2deg(ra), sin(dec));
-        assert(fabs(sin(coords->horn[0].ra) - sin(ra)) < tol);
-        assert(fabs(cos(coords->horn[0].ra) - cos(ra)) < tol);
-        assert(fabs(coords->horn[0].sindec - sin(dec)) < tol);
+        assert(fabs(sin(coords->horn[0].a) - sin(ra)) < tol);
+        assert(fabs(cos(coords->horn[0].a) - cos(ra)) < tol);
+        assert(fabs(coords->horn[0].b - sin(dec)) < tol);
     }
+
+    ACTpolState_free(state);
+    ACTpolArrayCoords_free(coords);
+    ACTpolArray_free(array);
+}
+
+void
+test_altaz(void)
+{
+    double freq_GHz = 150.;
+    double unixtime0 = 1337758400.;
+    ACTpolWeather weather;
+    ACTpolWeather_default(&weather);
+
+    ACTpolArray *array = ACTpolArray_alloc(1);
+    ACTpolArray_init(array, freq_GHz, 0., 0.);
+    ACTpolFeedhorn_init(array->horn, 0., 0., 0.);
+    ACTpolArrayCoords *coords = ACTpolArrayCoords_alloc(array);
+    ACTpolArrayCoords_init(coords, ACTPOL_COORDSYS_AZ_ALT);
+    ACTpolState *state = ACTpolState_alloc();
+    ACTpolState_init(state);
+    ACTpolScan scan;
+    ACTpolScan_init(&scan, 133, 45, 5.);
+    ACTpolArrayCoords_update_refraction(coords, &scan, &weather);
+
+    double boresight_alt = deg2rad(45);
+    double boresight_az = deg2rad(-32);
+    printf("%g %g\n", boresight_alt, boresight_az);
+    ACTpolState_update(state, unixtime0, boresight_alt, boresight_az);
+    ACTpolArrayCoords_update(coords, state);
+    printf("%g %g\n", coords->horn[0].b, coords->horn[0].a);
 
     ACTpolState_free(state);
     ACTpolArrayCoords_free(coords);
@@ -363,6 +393,7 @@ test_astro2(void)
 int
 main(int argc, char *argv[])
 {
+    test_altaz();
     test_astro2();
     test_astro();
     test_map();

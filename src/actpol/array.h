@@ -46,20 +46,24 @@ ACTpolArray_get_feedhorn(ACTpolArray *array, int i);
 
 typedef struct
 {
-#ifdef ACTPOL_GALACTIC_COORDS
-    double gl, gb;
-#else
-    double ra, dec, sindec;
-#endif
+    double a, b;
     double sin2gamma, cos2gamma;
 }
 ACTpolFeedhornCoords;
+
+enum ACTpolCoordinateSystem {
+    ACTPOL_COORDSYS_RA_DEC,
+    ACTPOL_COORDSYS_RA_SINDEC,
+    ACTPOL_COORDSYS_AZ_ALT,
+    ACTPOL_COORDSYS_GALACTIC
+};
 
 typedef struct
 {
     const ACTpolArray *array;
     double *ref;
     double mean_ref;
+    enum ACTpolCoordinateSystem coordsys;
     ACTpolFeedhornCoords *horn;
 }
 ACTpolArrayCoords;
@@ -71,7 +75,7 @@ void
 ACTpolArrayCoords_free(ACTpolArrayCoords *coords);
 
 void
-ACTpolArrayCoords_init(ACTpolArrayCoords *coords);
+ACTpolArrayCoords_init(ACTpolArrayCoords *coords, enum ACTpolCoordinateSystem coordsys);
 
 // refraction correction only needs to be calculated once per scan,
 // or when the weather changes.
@@ -81,9 +85,6 @@ ACTpolArrayCoords_update_refraction(ACTpolArrayCoords *coords,
 
 int
 ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state);
-
-int
-ACTpolArrayCoords_update_fast(ACTpolArrayCoords *coords, const ACTpolState *state);
 
 ACTpolFeedhornCoords *
 ACTpolArrayCoords_get_feedhorn_coords(ACTpolArrayCoords *coords, int i);

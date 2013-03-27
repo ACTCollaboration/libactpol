@@ -20,7 +20,7 @@ Usage
 ### Compute array coordinates
 
     ACTpolArrayCoords *coords = ACTpolArrayCoords_alloc(array);
-    ACTpolArrayCoords_init(coords);
+    ACTpolArrayCoords_init(coords, ACTPOL_COORDSYS_RA_SINDEC);
 
     ACTpolState *state = ACTpolState_alloc();
     ACTpolState_init(state);
@@ -45,7 +45,7 @@ Usage
         for (k = 0; k < nhorns; k++)
         {
           ACTpolFeedhornCoords *fc = coords->horn + k;
-          printf("%g %g\n", fc->ra, fc->sindec);
+          printf("%g %g\n", fc->a, fc->b); // a = ra, b = sin(dec)
           printf("%g %g\n", fc->sin2gamma1, fc->cos2gamma1);
           printf("%g %g\n", fc->sin2gamma2, fc->cos2gamma2);
         }
