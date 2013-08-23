@@ -32,7 +32,7 @@
 #define MAX_LINE_LENGTH 250
 #define MAX_LINCOM 3
 #define MAX_IN_COLS 15
-#define MAX_POLYNOM 6
+#define MAX_POLYORD (MAX_LINCOM * 2 - 1)
 
 struct RawEntryType {
   char field[FIELD_LENGTH+1];
@@ -50,8 +50,8 @@ struct FileHandle {
 struct PolynomEntryType {
   char field[FIELD_LENGTH+1];
   char in_field[FIELD_LENGTH+1];
-  int n_coeff;
-  double a[MAX_POLYNOM];
+  int poly_ord;
+  double a[MAX_POLYORD+1];
 };
 
 struct LincomEntryType {
@@ -366,15 +366,15 @@ static void ParseRaw(char in_cols[MAX_IN_COLS][MAX_LINE_LENGTH],
 static void ParsePolynom(char in_cols[MAX_IN_COLS][MAX_LINE_LENGTH],
     int n_cols, struct PolynomEntryType *P, int *error_code) {
   int i;
-  P->n_coeff = n_cols - 3;
-  if ((P->n_coeff < 2) || (P->n_coeff > MAX_POLYNOM)) {
+  P->poly_ord = n_cols - 4;
+  if ((P->poly_ord < 1) || (P->poly_ord > MAX_POLYORD)) {
     *error_code = GD_E_FORMAT;
     return;
   }
   strcpy(P->field, in_cols[0]); /* field */
   strncpy(P->in_field, in_cols[2], FIELD_LENGTH);
-  for (i=0; i<MAX_POLYNOM; i++) {
-    P->a[i] = (i<P->n_coeff) ? atof(in_cols[i+3]) : 0.;
+  for (i=0; i<=MAX_POLYORD; i++) {
+    P->a[i] = (i<=P->poly_ord) ? atof(in_cols[i+3]) : 0.;
   }
 }
 
@@ -1678,7 +1678,7 @@ static int DoIfPolynom(int recurse_level,
   if (*n_read == 0)
     return 1;
 
-  PolynomData(data_out, return_type, *n_read, P->n_coeff, P->a);
+  PolynomData(data_out, return_type, *n_read, P->poly_ord, P->a);
 
   return(1);
 }
