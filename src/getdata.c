@@ -32,6 +32,7 @@
 #define MAX_LINE_LENGTH 250
 #define MAX_LINCOM 3
 #define MAX_IN_COLS 15
+#define MAX_POLYNOM 6
 
 struct RawEntryType {
   char field[FIELD_LENGTH+1];
@@ -44,6 +45,13 @@ struct RawEntryType {
 struct FileHandle {
   ZZIP_FILE *fp;
   SLIMFILE *slim;
+};
+
+struct PolynomEntryType {
+  char field[FIELD_LENGTH+1];
+  char in_field[FIELD_LENGTH+1];
+  int n_coeff;
+  double a[MAX_POLYNOM];
 };
 
 struct LincomEntryType {
@@ -89,6 +97,8 @@ struct FormatType {
   struct RawEntryType first_field;
   struct RawEntryType *rawEntries;
   int n_raw;
+  struct PolynomEntryType *polynomEntries;
+  int n_polynom;
   struct LincomEntryType *lincomEntries;
   int n_lincom;
   struct LinterpEntryType *linterpEntries;
@@ -294,6 +304,7 @@ static int GetLine(FILE *fp, char *line) {
 /***************************************************************************/
 static void FreeF(struct FormatType *F) {
   if (F->n_raw > 0) free(F->rawEntries);
+  if (F->n_polynom > 0) free(F->polynomEntries);
   if (F->n_lincom > 0) free(F->lincomEntries);
   if (F->n_multiply > 0) free(F->multiplyEntries);
   if (F->n_linterp >0) free(F->linterpEntries);
@@ -344,6 +355,26 @@ static void ParseRaw(char in_cols[MAX_IN_COLS][MAX_LINE_LENGTH],
   if (R->samples_per_frame<=0) {
     *error_code = GD_E_FORMAT;
     return;
+  }
+}
+
+/***************************************************************************/
+/*                                                                         */
+/*  ParsePolynom: parse a POLYNOM data type in the formats file              */
+/*                                                                         */
+/***************************************************************************/
+static void ParsePolynom(char in_cols[MAX_IN_COLS][MAX_LINE_LENGTH],
+    int n_cols, struct PolynomEntryType *P, int *error_code) {
+  int i;
+  P->n_coeff = n_cols - 3;
+  if ((P->n_coeff < 2) || (P->n_coeff > MAX_POLYNOM)) {
+    *error_code = GD_E_FORMAT;
+    return;
+  }
+  strcpy(P->field, in_cols[0]); /* field */
+  strncpy(P->in_field, in_cols[2], FIELD_LENGTH);
+  for (i=0; i<MAX_POLYNOM; i++) {
+    P->a[i] = (i<P->n_coeff) ? atof(in_cols[i+3]) : 0.;
   }
 }
 
@@ -487,6 +518,11 @@ static int RawCmp(const void *A, const void *B) {
         ((struct RawEntryType *)B)->field));
 }
 
+static int PolynomCmp(const void *A, const void *B) {
+  return (strcmp(((struct PolynomEntryType *)A)->field,
+        ((struct PolynomEntryType *)B)->field));
+}
+
 static int LincomCmp(const void *A, const void *B) {
   return (strcmp(((struct LincomEntryType *)A)->field,
         ((struct LincomEntryType *)B)->field));
@@ -551,6 +587,13 @@ static int ParseFormatFile(ZZIP_FILE* fp, struct FormatType *F, const char* file
       F->rawEntries =
         realloc(F->rawEntries, F->n_raw*sizeof(struct RawEntryType));
       ParseRaw(in_cols, F->rawEntries+F->n_raw - 1, subdir, &error_code);
+    } else if (strcmp(in_cols[1], "POLYNOM")==0) {
+      F->n_polynom++;
+      F->polynomEntries =
+        realloc(F->polynomEntries,
+            F->n_polynom*sizeof(struct PolynomEntryType));
+      ParsePolynom(in_cols, n_cols, F->polynomEntries+F->n_polynom - 1,
+          &error_code);
     } else if (strcmp(in_cols[1], "LINCOM")==0) {
       F->n_lincom++;
       F->lincomEntries =
@@ -687,10 +730,11 @@ struct FormatType *GetFormat(const char *filedir, const char *linterp_prefix, in
   F = (struct FormatType *) malloc( sizeof(struct FormatType) );
 
   strcpy(F->FileDirName, filedir);
-  F->n_raw = F->n_lincom = F->n_multiply = F->n_linterp = F->n_mplex = F->n_bit
+  F->n_raw = F->n_polynom = F->n_lincom = F->n_multiply = F->n_linterp = F->n_mplex = F->n_bit
     = 0;
   F->frame_offset = 0;
   F->rawEntries = NULL;
+  F->polynomEntries = NULL;
   F->lincomEntries = NULL;
   F->multiplyEntries = NULL;
   F->linterpEntries = NULL;
@@ -737,6 +781,10 @@ struct FormatType *GetFormat(const char *filedir, const char *linterp_prefix, in
         RawCmp);
   }
 
+  if (F->n_polynom > 1) {
+    qsort(F->polynomEntries, F->n_polynom, sizeof(struct PolynomEntryType),
+        PolynomCmp);
+  }
   if (F->n_lincom > 1) {
     qsort(F->lincomEntries, F->n_lincom, sizeof(struct LincomEntryType),
         LincomCmp);
@@ -1082,6 +1130,8 @@ static int FillZero(char *databuffer, char type, int s0, int ns) {
 static int GetSPF(int recurse_level, const char *field_code, const struct FormatType *F, int *error_code) {
   struct RawEntryType tR;
   struct RawEntryType *R;
+  struct PolynomEntryType tP;
+  struct PolynomEntryType *P;
   struct LincomEntryType tL;
   struct LincomEntryType *L;
   struct MultiplyEntryType tM;
@@ -1116,6 +1166,19 @@ static int GetSPF(int recurse_level, const char *field_code, const struct Format
       sizeof(struct RawEntryType), RawCmp);
   if (R!=NULL) {
     spf = R->samples_per_frame;
+    return(spf);
+  }
+
+  /***************************************/
+  /** Check to see if it is a polynom entry **/
+  /* binary search for the field */
+  /* make a RawEntry we can compare to */
+  strncpy(tP.field, field_code, FIELD_LENGTH);
+  /** use the stdlib binary search */
+  P = bsearch(&tP, F->polynomEntries, F->n_polynom,
+      sizeof(struct PolynomEntryType), PolynomCmp);
+  if (P!=NULL) {
+    spf = GetSPF(recurse_level+1, P->in_field, F, error_code);
     return(spf);
   }
 
@@ -1393,6 +1456,76 @@ static void ScaleData(void *data, char type, int npts, double m, double b) {
 
 /***************************************************************************/
 /*                                                                         */
+/*   PolynomData: out = a[0] + a[1]*in + ...                               */
+/*                                                                         */
+/***************************************************************************/
+
+/* Macros to reduce tangly code */
+#define POLYNOM5(t,npts) \
+  for (i = 0; i < npts; i++) ((t*)data)[i] = (t)( \
+      ((t*)data)[i] * ((t*)data)[i] * ((t*)data)[i] \
+      * ((t*)data)[i] * ((t*)data)[i] * a[5] \
+      + ((t*)data)[i] * ((t*)data)[i] * ((t*)data)[i] * ((t*)data)[i] * a[4] \
+      + ((t*)data)[i] * ((t*)data)[i] * ((t*)data)[i] * a[3] \
+      + ((t*)data)[i] * ((t*)data)[i] * a[2] \
+      + ((t*)data)[i] * a[1] + a[0] \
+      )
+
+#define POLYNOM4(t,npts) \
+  for (i = 0; i < npts; i++) ((t*)data)[i] = (t)( \
+      ((t*)data)[i] * ((t*)data)[i] * ((t*)data)[i] * ((t*)data)[i] * a[4] \
+      + ((t*)data)[i] * ((t*)data)[i] * ((t*)data)[i] * a[3] \
+      + ((t*)data)[i] * ((t*)data)[i] * a[2] \
+      + ((t*)data)[i] * a[1] + a[0] \
+      )
+
+#define POLYNOM3(t,npts) \
+  for (i = 0; i < npts; i++) ((t*)data)[i] = (t)( \
+      ((t*)data)[i] * ((t*)data)[i] * ((t*)data)[i] * a[3] \
+      + ((t*)data)[i] * ((t*)data)[i] * a[2] \
+      + ((t*)data)[i] * a[1] + a[0] \
+      )
+
+#define POLYNOM2(t,npts) \
+  for (i = 0; i < npts; i++) ((t*)data)[i] = (t)( \
+      ((t*)data)[i] * ((t*)data)[i] * a[2] \
+      + ((t*)data)[i] * a[1] + a[0] \
+      )
+
+#define POLYNOM(t) \
+  switch (n) { \
+    case 2: POLYNOM2(t,npts); break; \
+    case 3: POLYNOM3(t,npts); break; \
+    case 4: POLYNOM4(t,npts); break; \
+    case 5: POLYNOM5(t,npts); break; \
+  }
+
+static void PolynomData(void *data, char type, int npts, int n, const double *a) {
+  int i;
+
+  if (n == 1) {
+    /* no need to duplicate this case */
+    ScaleData(data, type, npts, a[1], a[0]);
+  } else {
+    switch (type) {
+      case 'n':                              break;
+      case 'c':     POLYNOM(          char); break;
+      case 's':     POLYNOM(         short); break;
+      case 'u':     POLYNOM(unsigned short); break;
+      case 'S':     POLYNOM(           int); break;
+      case 'U':     POLYNOM(  unsigned int); break;
+      case 'f':     POLYNOM(         float); break;
+      case 'd':     POLYNOM(        double); break;
+      default:
+        printf("Another impossible error\n");
+        abort();
+        break;
+    }
+  }
+}
+
+/***************************************************************************/
+/*                                                                         */
 /*            AddData: add B to A.  B is unchanged                         */
 /*                                                                         */
 /***************************************************************************/
@@ -1498,6 +1631,57 @@ static void MultiplyData(void *A, int spfA, void *B, int spfB, char type, int n)
   }
 }
 
+/***************************************************************************/
+/*                                                                         */
+/*   Look to see if the field code belongs to a polynom.  If so, parse it.  */
+/*                                                                         */
+/***************************************************************************/
+static int DoIfPolynom(int recurse_level,
+    const struct FormatType *F, const char *field_code,
+    int first_frame, int first_samp,
+    int num_frames, int num_samp,
+    char return_type, void *data_out,
+    int *error_code, int *n_read) {
+  struct PolynomEntryType tP;
+  struct PolynomEntryType *P;
+  void *tmpbuf;
+  int i;
+  int spf1, spf2, num_samp2, first_samp2;
+  int n_read2;
+
+  /******* binary search for the field *******/
+  /* make a PolynomEntry we can compare to */
+  strncpy(tP.field, field_code, FIELD_LENGTH);
+  /** use the stdlib binary search */
+  P = bsearch(&tP, F->polynomEntries, F->n_polynom,
+      sizeof(struct PolynomEntryType), PolynomCmp);
+  if (P==NULL) return(0);
+
+  /*****************************************/
+  /** if we got here, we found the field! **/
+  /** read into dataout and scale the first element **/
+  spf1 = GetSPF(recurse_level+1,P->in_field, F, error_code);
+  if (*error_code != GD_E_OK) return(1);
+
+  /* read and scale the first field and record the number of samples
+   * returned */
+  *n_read = DoField(recurse_level+1, F, P->in_field,
+      first_frame, first_samp,
+      num_frames, num_samp,
+      return_type, data_out,
+      error_code);
+
+  if (*error_code != GD_E_OK)
+    return(1);
+
+  /* Nothing to polynomise */
+  if (*n_read == 0)
+    return 1;
+
+  PolynomData(data_out, return_type, *n_read, P->n_coeff, P->a);
+
+  return(1);
+}
 
 /***************************************************************************/
 /*                                                                         */
@@ -1545,7 +1729,7 @@ static int DoIfLincom(int recurse_level,
   /* Nothing to lincomise */
   if (*n_read == 0)
     return 1;
-  
+
   ScaleData(data_out, return_type, *n_read, L->m[0], L->b[0]);
 
   if (L->n_infields > 1) {
@@ -1610,7 +1794,7 @@ static int DoIfMultiply(int recurse_level,
   int n_read2;
 
   /******* binary search for the field *******/
-  /* make a LincomEntry we can compare to */
+  /* make a MultiplyEntry we can compare to */
   strncpy(tM.field, field_code, FIELD_LENGTH);
   /** use the stdlib binary search */
   M = bsearch(&tM, F->multiplyEntries, F->n_multiply,
@@ -1955,6 +2139,13 @@ static int DoField(int recurse_level,
   }
 
   if (DoIfRaw(F, field_code,
+        first_frame, first_samp,
+        num_frames, num_samp,
+        return_type, data_out,
+        error_code, &n_read)) {
+    return(n_read);
+  } else if (DoIfPolynom(recurse_level,
+        F, field_code,
         first_frame, first_samp,
         num_frames, num_samp,
         return_type, data_out,
