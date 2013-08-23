@@ -360,7 +360,7 @@ static void ParseRaw(char in_cols[MAX_IN_COLS][MAX_LINE_LENGTH],
 
 /***************************************************************************/
 /*                                                                         */
-/*  ParsePolynom: parse a POLYNOM data type in the formats file              */
+/*  ParsePolynom: parse a POLYNOM data type in the formats file            */
 /*                                                                         */
 /***************************************************************************/
 static void ParsePolynom(char in_cols[MAX_IN_COLS][MAX_LINE_LENGTH],
@@ -1633,7 +1633,7 @@ static void MultiplyData(void *A, int spfA, void *B, int spfB, char type, int n)
 
 /***************************************************************************/
 /*                                                                         */
-/*   Look to see if the field code belongs to a polynom.  If so, parse it.  */
+/*   Look to see if the field code belongs to a polynom.  If so, parse it. */
 /*                                                                         */
 /***************************************************************************/
 static int DoIfPolynom(int recurse_level,
