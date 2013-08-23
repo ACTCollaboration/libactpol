@@ -5,7 +5,7 @@ libactpol
 Usage
 -----
 
-### Setup an array
+### Setup array pointing
 
     #include <actpol/actpol.h>
 
@@ -69,6 +69,7 @@ Usage
 ### Create and write map
 
     ACTpolMap *map = ACTpolMap_new(ra_min, ra_max, dec_min, dec_max, pixsize);
+
     for (...)
     {
       ...
@@ -76,6 +77,7 @@ Usage
       long pix = ACTpolMap_sky2pix_cea_fast(map, ra, sindec);
       map->data[pix] += ...
     }
+
     ACTpolMap_write_to_fits(map, "filename");
     ACTpolMap_free(map);
 
