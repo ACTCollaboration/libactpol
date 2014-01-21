@@ -235,6 +235,35 @@ ACTSite_init(ACTSite *s)
 }
 
 void
+sofa_altaz_to_radec(ACTpolWeather *weather, double freq_GHz, double unixtime,
+        double alt, double az, double *ra, double *dec)
+{
+    double zd = deg2rad(90) - alt;
+    double utc1, utc2, dut1, elong, phi, hm, xp, yp, wl;
+
+    utc1 = 2440587.5;
+    utc2 = secs2days(unixtime);
+    double mjd_utc = jd2mjd(utc1) + utc2;
+    int stat = actpol_get_iers_bulletin_a(mjd_utc, &dut1, &xp, &yp);
+    assert(stat == 0);
+    xp = arcsec2rad(xp);
+    yp = arcsec2rad(yp);
+
+    elong = ACTPOL_LONGITUDE_EAST;
+    phi = ACTPOL_LATITUDE;
+    hm = ACTPOL_ELEVATION_METERS;
+    wl = 299792.458/freq_GHz; // um
+
+    stat = iauAtoc13("A", az, zd, utc1, utc2, dut1,
+                       elong, phi, hm, xp, yp,
+                       weather->pressure_mbar,
+                       weather->temperature_C,
+                       weather->relative_humidity,
+                       wl, ra, dec);
+    assert(stat == 0);
+}
+
+void
 test_astro(void)
 {
     Quaternion q, q1, q2, q3, q4;
@@ -247,20 +276,6 @@ test_astro(void)
     check_focalplane_to_NWU(alt, az);
     check_horizon_to_itrs(alt, az);
     check_itrs_to_gcrs(unixtime);
-
-    /*
-    double ref = actpol_refraction(&weather, freq_GHz, alt);
-    //altaz2itrs(alt-ref, az, r);
-    actpol_ang2vec(-az, alt-ref, r);
-    Quaternion_identity(q);
-    //actpol_diurnal_aberration(r, q);
-    actpol_rotate_NWU_to_ITRS(q);
-    actpol_rotate_ITRS_to_GCRS(unixtime, q);
-    Quaternion_to_matrix(q, mat);
-    matrix_times_vec3(rp, mat, r);
-    actpol_vec2ang(rp, &ra, &dec);
-    printf("noltaq ra, dec = %.8g, %.8g\n", rad2deg(ra), rad2deg(dec));
-    */
 
     ACTpolArray *array = ACTpolArray_alloc(1);
     ACTpolArray_init(array, freq_GHz, 0., 0.);
@@ -282,6 +297,12 @@ test_astro(void)
     printf("slalib ra, sin(dec) = %.8g, %.8g\n", rad2deg(ra), sin(dec));
 
     double tol = arcsec2rad(0.05);
+    assert(fabs(coords->horn[0].a - ra) < tol);
+    assert(fabs(coords->horn[0].b - sin(dec)) < tol);
+
+    tol = arcsec2rad(0.06);
+    sofa_altaz_to_radec(&weather, freq_GHz, unixtime, alt, az, &ra, &dec);
+    printf("  sofa ra, sin(dec) = %.8g, %.8g\n", rad2deg(ra), sin(dec));
     assert(fabs(coords->horn[0].a - ra) < tol);
     assert(fabs(coords->horn[0].b - sin(dec)) < tol);
 
