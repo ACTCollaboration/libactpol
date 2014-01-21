@@ -62,6 +62,36 @@ actpol_refraction(const ACTpolWeather *weather, double freq_GHz, double alt)
     return ref;
 }
 
+// ALMA technical memo 366
+// doesn't agree w/ figure 3 yet
+double
+actpol_refraction_alma366(const ACTpolWeather *weather, double freq_GHz, double alt)
+{
+    const double cos_alt = cos(alt), sin_alt = sin(alt);
+    const double Ts = weather->temperature_C + 273.15;
+    const double Ps = weather->pressure_mbar;
+    const double esat = (1.0007 + 3.46e-6*Ps) * 6.1121 * exp(17.502*(Ts - 273.15)/(Ts - 32.18));
+    const double Pw = weather->relative_humidity * esat;
+    const double N0 = (77.6*Ps + (-5.6 + 3.75e5/Ts)*Pw)/Ts;
+    const double R0 = 1e-6*N0;
+    const double A1 = 0.6306849
+       + 0.6069e-4 * (Ps - 1013.25)
+       - 0.2532e-4 * Pw
+       - 0.9881e-6 * Pw * Pw
+       - 0.5154e-3 * (Ts - 258.15)
+       + 0.2880e-5 * (Ts - 258.15) * (Ts - 258.15);
+    const double A2 = 1.302642;
+    const double H = 8314.34 * Ts / (28.97 * 9.784);
+    const double I2_csc_alt = sqrt(0.5*11231.0/H)*sin_alt/(cos_alt*cos_alt);
+    const double inv_mprime =
+        (sin_alt + A1 /
+          (I2_csc_alt + A2 /
+            (sin_alt + 13.24969 /
+              (I2_csc_alt + 173.4233))));
+
+    return R0*cos_alt/inv_mprime;
+}
+
 ACTpolState *
 ACTpolState_alloc(void)
 {
