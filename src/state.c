@@ -68,12 +68,23 @@ double
 actpol_refraction_alma366(const ACTpolWeather *weather, double freq_GHz, double alt)
 {
     const double cos_alt = cos(alt), sin_alt = sin(alt);
+
+    /* surface temperature [K] */
     const double Ts = weather->temperature_C + 273.15;
+
+    /* total surface barometric pressure [mb] */
     const double Ps = weather->pressure_mbar;
+
+    /* surface saturated water vapor pressure [mb], eqn 16 */
     const double esat = (1.0007 + 3.46e-6*Ps) * 6.1121 * exp(17.502*(Ts - 273.15)/(Ts - 32.18));
+
+    /* partial surface pressure of water vapor [mb], eqn 14 */
     const double Pw = weather->relative_humidity * esat;
-    const double N0 = (77.6*Ps + (-5.6 + 3.75e5/Ts)*Pw)/Ts;
-    const double R0 = 1e-6*N0;
+
+    const double N0 = (77.6*Ps + (-5.6 + 3.75e5/Ts)*Pw)/Ts; /* eqn 12 */
+    const double R0 = 1e-6*N0; /* [radians], eqn 11 */
+
+    /* eqn 30 */
     const double A1 = 0.6306849
        + 0.6069e-4 * (Ps - 1013.25)
        - 0.2532e-4 * Pw
@@ -81,8 +92,12 @@ actpol_refraction_alma366(const ACTpolWeather *weather, double freq_GHz, double 
        - 0.5154e-3 * (Ts - 258.15)
        + 0.2880e-5 * (Ts - 258.15) * (Ts - 258.15);
     const double A2 = 1.302642;
-    const double H = 8314.34 * Ts / (28.97 * 9.784);
-    const double I2_csc_alt = sqrt(0.5*11231.0/H)*sin_alt/(cos_alt*cos_alt);
+
+    /* effective height of the atmosphere [km] */
+    const double H = 8.31434 * Ts / (28.97 * 9.784);
+
+    /* eqn 27 for I */
+    const double I2_csc_alt = (0.5*6378./H)*sin_alt/(cos_alt*cos_alt);
     const double inv_mprime =
         (sin_alt + A1 /
           (I2_csc_alt + A2 /
@@ -90,6 +105,28 @@ actpol_refraction_alma366(const ACTpolWeather *weather, double freq_GHz, double 
               (I2_csc_alt + 173.4233))));
 
     return R0*cos_alt/inv_mprime;
+}
+
+double
+actpol_refraction_ulich(const ACTpolWeather *weather, double freq_GHz, double alt)
+{
+    const double cos_alt = cos(alt), sin_alt = sin(alt);
+
+    /* surface temperature [K] */
+    const double Ts = weather->temperature_C + 273.15;
+
+    /* total surface barometric pressure [mb] */
+    const double Ps = weather->pressure_mbar;
+
+    /* surface saturated water vapor pressure [mb], eqn 16 */
+    const double esat = (1.0007 + 3.46e-6*Ps) * 6.1121 * exp(17.502*(Ts - 273.15)/(Ts - 32.18));
+
+    /* partial surface pressure of water vapor [mb], eqn 14 */
+    const double Pw = weather->relative_humidity * esat;
+
+    const double R0 = 16.01*Ps/Ts - 1.15*Pw/Ts + 7.734937e4*Pw/(Ts*Ts);
+    const double f = cos_alt/(sin_alt + 0.00175*tan(deg2rad(87.5) - alt));
+    return R0*f;
 }
 
 ACTpolState *

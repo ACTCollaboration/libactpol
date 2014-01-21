@@ -45,6 +45,8 @@ double
 actpol_refraction(const ACTpolWeather *weather, double freq_GHz, double alt);
 double
 actpol_refraction_alma366(const ACTpolWeather *weather, double freq_GHz, double alt);
+double
+actpol_refraction_ulich(const ACTpolWeather *weather, double freq_GHz, double alt);
 
 void
 actpol_rotate_focalplane_to_NWU(double boresight_alt, double boresight_az, Quaternion q);
