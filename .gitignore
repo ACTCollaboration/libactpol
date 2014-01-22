@@ -19,6 +19,7 @@ Makefile.in
 /ar-lib
 
 # autoconf
+/README
 /autom4te.cache
 /aclocal.m4
 /compile
