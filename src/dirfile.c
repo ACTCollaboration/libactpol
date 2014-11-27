@@ -105,7 +105,8 @@ ACTpolDirfile_read_channel( char typechar, const ACTpolDirfile *dirfile,
     }
     assert( samples_per_frame > 0 );
 
-    int nsamples = nframes * samples_per_frame;
+    // last frame may be partial
+    int nsamples = (nframes + 1) * samples_per_frame - 1;
     size_t nbytes = nsamples * bytes_per_sample(typechar);
 
     void *data = malloc( nbytes );
