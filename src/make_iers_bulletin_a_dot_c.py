@@ -36,7 +36,17 @@ actpol_get_iers_bulletin_a( double mjd, double *dut1, double *x, double *y )
         int k = (int) mjd_floor - mjd_min;
         xyz a = bulletinA[k];
         xyz b = bulletinA[k+1];
-        *dut1 = (1-r)*a.dut1 + r*b.dut1;
+
+        // Detect leap seconds
+        double leap = b.dut1 - a.dut1;
+        if (leap > 0.5)
+            leap = 1.;
+        else if (leap < -0.5)
+            leap = -1.;
+        else
+            leap = 0;
+
+        *dut1 = (1-r)*a.dut1 + r*(b.dut1-leap);
         *x = (1-r)*a.x + r*b.x;
         *y = (1-r)*a.y + r*b.y;
     }
