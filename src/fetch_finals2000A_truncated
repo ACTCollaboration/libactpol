@@ -1,0 +1,2 @@
+#!/bin/bash
+curl ftp://maia.usno.navy.mil/ser7/finals2000A.data | tail -n+5845 > finals2000A.truncated

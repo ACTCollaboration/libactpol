@@ -1,19 +1,4 @@
 #!/usr/bin/env python
-#
-# The file:
-#
-#   iers_bulletin_a.dat
-#
-# is from:
-#
-#   http://maia.usno.navy.mil/search/search.html
-#
-# with options:
-#
-#   * Bull. A PM-x (sec. of arc)
-#   * Bull. A PM-y (sec. of arc)
-#   * Bull. A UT1-UTC (sec. of time)
-#
 
 header = """
 #include <assert.h>
@@ -67,16 +52,22 @@ if __name__ == '__main__':
     f.write( header )
 
     mjds = []
-    f.write( "static const xyz bulletinA[] = {\n" ) 
+    f.write( "static const xyz bulletinA[] = {\n" )
 
-    for line in open('iers_bulletin_a.dat'):
-        stripped_line = line.strip()
-        if len(stripped_line) == 0 or stripped_line[0] == "#":
-            continue
-        s = line.rsplit( None, 4 )
-        mjd = int(float(s[1]))
-        mjds.append( mjd )
-        f.write( "  {%sf, %sf, %sf},  // %s\n" % (s[2],s[3],s[4],s[0].strip()) )
+    for line in open('finals2000A.truncated'):
+        date = line[:6]
+        mjd = int(float(line[7:15]))
+
+        if line[23] != ' ':
+            # bulletin A
+            x = float(line[18:27])
+            y = float(line[37:46])
+            dut1 = float(line[58:68])
+        else:
+            break
+
+        mjds.append(mjd)
+        f.write("  {% ff, % ff, % .7ff},  // %s\n" % (x,y,dut1,date))
 
     f.write( "};\n\n" )
     f.write( "static const int mjd_min = %d;\n" % min(mjds) )
