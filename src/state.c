@@ -160,6 +160,7 @@ ACTpolState_init(ACTpolState *state)
     state->slerp_unixtime0 = 0.;
     state->slerp_length = 660.; // 11 minutes
     state->eob_unixtime = 0.;
+    Quaternion_identity(state->BCRS_to_NSC_q);
 }
 
 void

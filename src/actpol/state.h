@@ -65,6 +65,9 @@ typedef struct
     // earth orbital beta (v/c)
     double eob_unixtime;
     double earth_orbital_beta[3];
+
+    // Final rotation, to native spherical coordinates.
+    Quaternion BCRS_to_NSC_q;
 }
 ACTpolState;
 

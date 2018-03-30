@@ -47,7 +47,9 @@ ACTpolArray_get_feedhorn(ACTpolArray *array, int i);
 typedef struct
 {
     double a, b;
+    double singamma, cosgamma;
     double sin2gamma, cos2gamma;
+    double m[3][3];
 }
 ACTpolFeedhornCoords;
 
@@ -55,7 +57,8 @@ enum ACTpolCoordinateSystem {
     ACTPOL_COORDSYS_RA_DEC,
     ACTPOL_COORDSYS_RA_SINDEC,
     ACTPOL_COORDSYS_AZ_ALT,
-    ACTPOL_COORDSYS_GALACTIC
+    ACTPOL_COORDSYS_GALACTIC,
+    ACTPOL_COORDSYS_GENERAL
 };
 
 typedef struct

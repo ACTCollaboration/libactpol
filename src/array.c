@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <malloc.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "actpol/array.h"
 #include "actpol/astro.h"
@@ -117,7 +118,7 @@ ACTpolArrayCoords_update_refraction(ACTpolArrayCoords *coords,
         double alt = asin(mat[2][2]);
 
         coords->ref[i] = actpol_refraction(weather, array->freq_GHz, alt);
-        assert(coords->ref[i] > 0. && coords->ref[i] < 1e-3);
+        assert(coords->ref[i] >= 0. && coords->ref[i] < 1e-3);
         coords->mean_ref += coords->ref[i];
     }
     coords->mean_ref /= coords->array->nhorns;
@@ -162,6 +163,57 @@ compute_mean_focalplane_to_BCRS(const ACTpolArrayCoords *coords,
 
     Quaternion_mul(focalplane_to_BCRS, GCRS_to_BCRS, focalplane_to_GCRS);
     Quaternion_unit(focalplane_to_BCRS);
+}
+
+int
+ACTpolArrayCoords_update_general(ACTpolArrayCoords *coords, const ACTpolState *state)
+{
+    const ACTpolArray *array = coords->array;
+
+    Quaternion focalplane_to_BCRS;
+    compute_mean_focalplane_to_BCRS(coords, state, focalplane_to_BCRS);
+
+    Quaternion focalplane_to_NSC;
+    Quaternion_mul(focalplane_to_NSC, state->BCRS_to_NSC_q,
+		   focalplane_to_BCRS);
+
+    #pragma omp parallel for
+    for (int i = 0; i != array->nhorns; ++i)
+    {
+        Quaternion q;
+        Quaternion_mul(q, focalplane_to_NSC, array->horn[i].focalplane_q);
+
+        double mat[3][3];
+        Quaternion_conj(q); // transpose mat
+        Quaternion_to_matrix(q, mat);
+        double *p1 = mat[0];
+        double *p2 = mat[1];
+        double *r = mat[2];
+
+        ACTpolFeedhornCoords *horn = coords->horn+i;
+        horn->a = atan2(r[1], r[0]);
+        horn->b = atan2(r[2], hypot(r[0],r[1]));
+
+	memcpy(horn->m, mat, 9*sizeof(horn->m[0][0]));
+
+        // w = r x z
+        double w[3], z[3] = {0, 0, 1};
+        vec3_cross_product(w, r, z);
+        vec3_unit(w);
+
+        // n = w x r
+        double n[3];
+        vec3_cross_product(n, w, r);
+
+        double sin_g = vec3_dot_product(p1, w);
+        double cos_g = vec3_dot_product(p1, n);
+	horn->singamma = sin_g;
+	horn->cosgamma = cos_g;
+        horn->sin2gamma = 2*sin_g*cos_g;
+        horn->cos2gamma = 2*cos_g*cos_g - 1;
+    }
+
+    return 0;
 }
 
 int
@@ -372,6 +424,8 @@ ACTpolArrayCoords_update(ACTpolArrayCoords *coords, const ACTpolState *state)
             return ACTpolArrayCoords_update_az_alt(coords, state);
         case ACTPOL_COORDSYS_GALACTIC:
             return ACTpolArrayCoords_update_galactic(coords, state);
+        case ACTPOL_COORDSYS_GENERAL:
+            return ACTpolArrayCoords_update_general(coords, state);
     }
     assert(0);
     return -1;
