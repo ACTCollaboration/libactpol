@@ -22,11 +22,15 @@ ACTpolDirfile_open(const char *ifilename)
     char *filename = strdup(ifilename);
     if (strcmp(filename + (len-4), ".zip") == 0) {
         filename[len-4] = '\0';
-        printf("filename = %s\n", filename);
+	// printf("filename = %s\n", filename);
     }
 
     int status;
-    struct FormatType *format = GetFormat(filename, NULL, &status);
+    char linterp_prefix[1024];
+    strcpy(linterp_prefix, filename);
+    strcat(linterp_prefix, "/Extras/");
+    
+    struct FormatType *format = GetFormat(filename, linterp_prefix, &status);
     free(filename);
     if (status != 0) {
         return NULL;

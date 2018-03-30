@@ -109,6 +109,7 @@ struct FormatType {
   int n_mplex;
   struct BitEntryType *bitEntries;
   int n_bit;
+  ZZIP_FILE *fp_base;
 };
 
 const int  MAX_GETDATA_FILES_OPEN=128;
@@ -243,19 +244,18 @@ read_lines_from_buffer( char *buf, size_t *nlines )
 }
 
 static bool
-file_exists( const char *filename )
+file_exists( const char *filename, ZZIP_FILE *ref )
 {
-  ZZIP_FILE *fp = zzip_fopen( filename, "r" );
+  ZZIP_FILE *fp = zzip_freopen( filename, "rq", ref );
   if ( fp == NULL ) return false;
   zzip_fclose( fp );
   return true;
 }
 
 static size_t
-file_size( const char *filename )
+file_size( const char *filename, ZZIP_FILE *ref)
 {
-  printf( "file_size: %s\n", filename );
-    ZZIP_FILE *fp = zzip_fopen( filename, "r" );
+    ZZIP_FILE *fp = zzip_freopen( filename, "rq", ref );
     assert( fp != NULL ); 
     ZZIP_STAT stat;
     zzip_fstat( fp, &stat );
@@ -310,6 +310,7 @@ static void FreeF(struct FormatType *F) {
   if (F->n_linterp >0) free(F->linterpEntries);
   if (F->n_mplex > 0) free(F->mplexEntries);
   if (F->n_bit > 0) free(F->bitEntries);
+  if (F->fp_base) zzip_fclose(F->fp_base);
 }
 
 /***************************************************************************/
@@ -651,7 +652,7 @@ static int ParseFormatFile(ZZIP_FILE* fp, struct FormatType *F, const char* file
       /* Otherwise, try to open the file */
       snprintf(format_file, MAX_FILENAME_LENGTH + 6, "%s/%s/%s", filedir,
           subdir, in_cols[1]);
-      new_fp = zzip_fopen(format_file, "r");
+      new_fp = zzip_freopen(format_file, "rq", fp);
 
       /* If opening the file failed, set the error code and abort parsing. */
       if (new_fp == NULL) {
@@ -740,13 +741,16 @@ struct FormatType *GetFormat(const char *filedir, const char *linterp_prefix, in
   F->linterpEntries = NULL;
   F->mplexEntries = NULL;
   F->bitEntries = NULL;
+  F->fp_base = fp;
 
   /* Parse the file.  This will take care of any necessary inclusions */
   i_include = 1;
   IncludeList = malloc(sizeof(char*));
   IncludeList[0] = strdup("format");
   *error_code = ParseFormatFile(fp, F, filedir, ".", linterp_prefix, &IncludeList, &i_include);
-  zzip_fclose(fp);
+
+  /* Don't close it... we want it. */
+  /* zzip_fclose(fp); */
 
   /* Clean up IncludeList.  We don't need it anymore */
   for (i = 0; i < i_include; ++i)
@@ -764,14 +768,14 @@ struct FormatType *GetFormat(const char *filedir, const char *linterp_prefix, in
       snprintf(raw_data_filename, MAX_FILENAME_LENGTH+FIELD_LENGTH+2, 
           "%s/%s", filedir, F->rawEntries[i].file);
       //if (stat(raw_data_filename, &statbuf) >=0) {
-      if ( file_exists(raw_data_filename) ) {
+      if ( file_exists(raw_data_filename, F->fp_base) ) {
         F->first_field = F->rawEntries[i];
         break;
       }
       snprintf(raw_data_filename, MAX_FILENAME_LENGTH+FIELD_LENGTH+2, 
           "%s/%s.slm", filedir, F->rawEntries[i].file);
       //if (stat(raw_data_filename, &statbuf) >=0) {
-      if ( file_exists(raw_data_filename) ) {
+      if ( file_exists(raw_data_filename, F->fp_base) ) {
         F->first_field = F->rawEntries[i];
         break;
       }
@@ -1238,13 +1242,12 @@ static int GetSPF(int recurse_level, const char *field_code, const struct Format
     return(spf);
   }
 
-  printf("field_code = %s\n", field_code);
   *error_code = GD_E_BAD_CODE;
   return(0);
 }
 
 static inline void open_raw(struct FileHandle *R, const char *FileDirName,
-                           const char *ChannelName) {
+			    const char *ChannelName, ZZIP_FILE *fp_base) {
 
   char datafilename[2 * MAX_FILENAME_LENGTH + FIELD_LENGTH + 2];
 
@@ -1253,7 +1256,7 @@ static inline void open_raw(struct FileHandle *R, const char *FileDirName,
   /* Try to open raw file */
   snprintf(datafilename, 2 * MAX_FILENAME_LENGTH + FIELD_LENGTH + 2, 
            "%s/%s", FileDirName, ChannelName);
-  R->fp = zzip_open(datafilename, O_RDONLY);
+  R->fp = zzip_freopen(datafilename, "rq", fp_base);
   if (R->fp)
     return;
 
@@ -1309,7 +1312,7 @@ static int DoIfRaw(const struct FormatType *F, const char *field_code,
   ns = num_samp + num_frames*R->samples_per_frame;
 
   /** open the file */
-  open_raw(&FH, F->FileDirName, R->file);
+  open_raw(&FH, F->FileDirName, R->file, F->fp_base);
   if (FH.fp<0 && FH.slim == NULL) {
     *n_read = 0;
     *error_code = GD_E_OPEN_RAWFIELD;
@@ -1937,12 +1940,12 @@ void MakeDummyLinterp(struct LinterpEntryType *E) {
   E->y[1] = 1;
 }
 
-static int ReadLinterpFile(struct LinterpEntryType *E) {
+static int ReadLinterpFile(struct LinterpEntryType *E, ZZIP_FILE *fp_base) {
   ZZIP_FILE *fp;
   int i;
   char line[255];
 
-  fp = zzip_fopen(E->linterp_file, "r");
+  fp = zzip_freopen(E->linterp_file, "rq", fp_base);
   if (fp==NULL) {
     MakeDummyLinterp(E);
     return (GD_E_OPEN_LINFILE);
@@ -2089,7 +2092,7 @@ static int DoIfLinterp(int recurse_level,
   /*****************************************/
   /** if we got here, we found the field! **/
   if (I->n_interp<0) {
-    *error_code = ReadLinterpFile(I);
+    *error_code = ReadLinterpFile(I, F->fp_base);
     if (*error_code != GD_E_OK) {
       *n_read = 0;
       return(1);
@@ -2247,7 +2250,7 @@ int GetNFrames(const struct FormatType *F, int *error_code, const char *in_field
   snprintf(raw_data_filename, 2 * MAX_FILENAME_LENGTH + FIELD_LENGTH + 2, 
       "%s/%s", F->FileDirName, F->first_field.file);
   //if (stat(raw_data_filename, &statbuf) < 0) {
-  if ( !file_exists(raw_data_filename) ) {
+  if ( !file_exists(raw_data_filename, F->fp_base) ) {
     snprintf(raw_data_filename, 2 * MAX_FILENAME_LENGTH + FIELD_LENGTH + 2, 
              "%s/%s.slm", F->FileDirName, F->first_field.file);
     st_size = slimrawsize(raw_data_filename);
@@ -2255,7 +2258,7 @@ int GetNFrames(const struct FormatType *F, int *error_code, const char *in_field
       return(0);
   } else
   {
-    st_size = file_size( raw_data_filename );
+    st_size = file_size( raw_data_filename, F->fp_base);
   }
 
   nf = st_size/
