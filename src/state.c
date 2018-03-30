@@ -2,8 +2,14 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "../config.h"
+#if HAVE_LIBSLALIB
 #include <slalib.h>
-#include <sofa.h>
+#elif HAVE_LIBSLAREFRO
+#include <slarefro.h>
+#else
+#error("Must have one of slalib or slarefro.")
+#endif
 
 #include "actpol/astro.h"
 #include "actpol/constants.h"
@@ -49,7 +55,12 @@ actpol_refraction(const ACTpolWeather *weather, double freq_GHz, double alt)
 {
     double ref;
     double temperature_K = weather->temperature_C + 273.15;
-    slaRefro(M_PI_2 - alt,
+#if HAVE_LIBSLALIB
+    slaRefro(
+#elif HAVE_LIBSLAREFRO
+    slaf_refro(
+#endif
+        M_PI_2 - alt,
         ACTPOL_ELEVATION_METERS,
         temperature_K,
         weather->pressure_mbar,

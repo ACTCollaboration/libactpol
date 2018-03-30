@@ -18,17 +18,16 @@ libactpol_la_SOURCES = array.c \
                        debug.h \
                        iers_bulletin_a.c \
                        map.c \
-                       oldact.c \
                        quaternion.c \
                        state.c
-libactpol_la_LIBADD = -lcfitsio -lslalib -lsofa_c -lwcs -lm
+libactpol_la_LIBADD = -lcfitsio -lsofa_c -lwcs -lm
 
 bin_PROGRAMS = actpol_refraction actpol_tod_info
-actpol_refraction_LDADD = libactpol.la -lcfitsio -lslalib -lsofa_c -lwcs -lm
-actpol_tod_info_LDADD = libactpol.la -lcfitsio -lslalib -lsofa_c -lwcs -lm
+actpol_refraction_LDADD = libactpol.la -lcfitsio -lsofa_c -lwcs -lm
+actpol_tod_info_LDADD = libactpol.la -lcfitsio -lsofa_c -lwcs -lm
 
 check_PROGRAMS = test
-test_LDADD = libactpol.la -lcfitsio -lslalib -lsofa_c -lwcs -lm
+test_LDADD = libactpol.la -lcfitsio -lsofa_c -lwcs -lm
 TESTS = $(check_PROGRAMS)
 
 if DIRFILE
@@ -40,3 +39,14 @@ actpol_tod_info_LDADD += -lzzip -lslim
 test_LDADD += -lzzip -lslim
 endif
 
+if SLALIB
+libactpol_la_LIBADD += -lslalib
+actpol_refraction_LDADD += -lslalib
+actpol_tod_info_LDADD += -lslalib
+test_LDADD += -lslalib
+endif
+
+if OLDACT
+nobase_include_HEADERS += actpol/oldact.h
+libactpol_la_SOURCES += oldact.c
+endif
