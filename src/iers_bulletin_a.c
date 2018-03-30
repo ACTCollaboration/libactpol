@@ -1,12 +1,13 @@
 
 #include <assert.h>
 #include <math.h>
+#include <stdlib.h>
 
 #include "actpol/iers_bulletin_a.h"
 
 typedef struct { float x; float y; float dut1; } xyz;
 
-static const xyz bulletinA[] = {
+static xyz bulletinA_factory[] = {
   {-0.080461f,  0.258438f, -0.2733522f},  //  8 1 1
   {-0.081875f,  0.260078f, -0.2743281f},  //  8 1 2
   {-0.083287f,  0.261935f, -0.2751958f},  //  8 1 3
@@ -4039,12 +4040,22 @@ static const xyz bulletinA[] = {
   { 0.085168f,  0.256738f, -0.1419924f},  // 19 112
 };
 
-static const int mjd_min = 54466;
-static const int mjd_max = 58495;
+static const int mjd_min_factory = 54466;
+static const int mjd_max_factory = 58495;
+
+static int mjd_min;
+static int mjd_max;
+static xyz *bulletinA;
 
 int
 actpol_get_iers_bulletin_a( double mjd, double *dut1, double *x, double *y )
 {
+    if (bulletinA == NULL) {
+        bulletinA = bulletinA_factory;
+        mjd_min = mjd_min_factory;
+        mjd_max = mjd_max_factory;
+    }
+
     if ( (mjd_min < mjd) && (mjd < mjd_max) )
     {
         double mjd_floor;
@@ -4052,7 +4063,6 @@ actpol_get_iers_bulletin_a( double mjd, double *dut1, double *x, double *y )
         int k = (int) mjd_floor - mjd_min;
         xyz a = bulletinA[k];
         xyz b = bulletinA[k+1];
-
         // Detect leap seconds
         double leap = b.dut1 - a.dut1;
         if (leap > 0.5)
@@ -4075,3 +4085,29 @@ actpol_get_iers_bulletin_a( double mjd, double *dut1, double *x, double *y )
     return 0;
 }
 
+int
+actpol_set_iers_bulletin_a( int mjd_min_, int mjd_max_, double *dut1, double *x, double *y)
+{
+    if (dut1 == NULL) {
+        // Destroy
+        if (bulletinA != bulletinA_factory) {
+            free(bulletinA);
+            bulletinA = NULL;
+        }
+        return 0;
+    }
+    // Create
+    mjd_min = mjd_min_;
+    mjd_max = mjd_max_;
+
+    int n_mjd = mjd_max - mjd_min + 1;
+    bulletinA = malloc(n_mjd*sizeof(*bulletinA));
+    assert(bulletinA != NULL);
+
+    for (int k=0; k<n_mjd; k++) {
+        bulletinA[k].x = x[k];
+        bulletinA[k].y = y[k];
+        bulletinA[k].dut1 = dut1[k];
+    }
+    return 0;
+}
